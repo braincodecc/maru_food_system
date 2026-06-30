@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "492112416040",
+    "project_id": "maru-food-system",
+    "storage_bucket": "maru-food-system.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:492112416040:android:00ec554dc056b9da1c541d",
+        "android_client_info": {
+          "package_name": "com.marufood.maru_food_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOhkmiLh3j-pcQ24oEGYihAiwzK9JDQY0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
