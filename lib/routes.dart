@@ -20,11 +20,18 @@ import 'screens/sales/sale_list_screen.dart';
 import 'screens/orders/order_list_screen.dart';
 import 'screens/orders/order_detail_screen.dart';
 import 'screens/settings/settings_exchange_rate_screen.dart';
+import 'modules/venta/pantallas/flujo_venta_wizard.dart';
 
 final Map<String, WidgetBuilder> appRoutes = {
   '/Splash': (context) => const SplashScreen(),
   '/login': (context) => const LoginScreen(),
   '/home': (context) => const HomeScreen(),
+
+  // =========================================================
+  // VENTA EXPRESS MODULAR (Maru Food System)
+  // =========================================================
+  // Apuntamos al Wizard que contiene el PageView y distribuye los 3 pasos.
+  '/venta-express': (context) => const FlujoVentaWizard(),
 
   // Productos
   '/products': (context) => ProductListScreen(),

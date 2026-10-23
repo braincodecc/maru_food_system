@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../services/orders_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -32,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.orange.shade800,
         icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
         label: const Text('VENDER AHORA', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        onPressed: () => Navigator.pushNamed(context, '/products'),
+        onPressed: () => Navigator.pushNamed(context, '/venta-express'),
       ),
       //floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 

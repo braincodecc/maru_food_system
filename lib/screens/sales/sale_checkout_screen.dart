@@ -195,7 +195,8 @@ class _CheckoutScreenState extends State<SaleCheckoutScreen> {
             location:
                 _manualLocation ??
                 LocationModel(
-                  geopoint: const GeoPoint(0, 0),
+                              latitude: 0, 
+            longitude: 0,
                   address: 'Sin GPS',
                 ),
           );
@@ -616,8 +617,8 @@ class _CheckoutScreenState extends State<SaleCheckoutScreen> {
                       ),
                       Text(
                         hasManual
-                            ? '${_manualLocation!.geopoint.latitude}, ${_manualLocation!.geopoint.longitude}'
-                            : '${_selectedCustomer!.location!.geopoint.latitude}, ${_selectedCustomer!.location!.geopoint.longitude}' ??
+                            ? '${_manualLocation!.latitude}, ${_manualLocation!.longitude}'
+                            : '${_selectedCustomer!.location!.latitude}, ${_selectedCustomer!.location!.longitude}' ??
                                   'Sin dirección técnica',
                         style: const TextStyle(fontSize: 12),
                       ),
@@ -710,7 +711,8 @@ class _CheckoutScreenState extends State<SaleCheckoutScreen> {
 
           // 2. Asignamos el modelo usando el valor actual del controlador
           _manualLocation = LocationModel(
-            geopoint: GeoPoint(lat, lng),
+            latitude: lat, 
+            longitude: lng,
             address: _addressCtrl.text,
           );
         });

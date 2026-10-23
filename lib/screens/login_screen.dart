@@ -23,7 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       // Navegar al Home Screen después del login
-      Navigator.pushReplacementNamed(context, "/home");
+      //Navigator.pushReplacementNamed(context, "/home");
 
     } on FirebaseAuthException catch (e) {
       String error = e.message.toString();//"Error al iniciar sesión";
