@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'routes/app_routes.dart';
+
+// Importación limpia de los módulos mediante sus barrel files
 import '../features/identity/identity.dart';
+import '../features/product/product.dart';
 
 class MyApp extends StatelessWidget {
   final SharedPreferences sharedPreferences;
@@ -12,13 +15,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // ¡El MultiProvider queda sumamente limpio y legible!
+        /// Módulo de Identidad (Carga el menú de Maru Food al instanciarse)
         ChangeNotifierProvider<IdentityProvider>(
           create: (_) =>
               createIdentityProvider(sharedPreferences)..checkAuthSession(),
         ),
 
-        // Aquí agregarás en el futuro tus otros módulos (ej: CartProvider, OrderProvider, etc.)
+        // Módulo de Productos (Carga el menú de Maru Food al instanciarse)
+        ChangeNotifierProvider<ProductProvider>(
+          create: (_) => createProductProvider()..loadActiveProducts(),
+        ),
       ],
       child: MaterialApp(
         title: 'Maru Food System',

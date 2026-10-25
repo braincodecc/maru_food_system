@@ -6,7 +6,7 @@ class GetActiveProductsUseCase {
 
   GetActiveProductsUseCase(this._repository);
 
- Future<List<ProductEntity>> call(String productId) async {
+ Future<List<ProductEntity>> call() async {
     return await _repository.getActiveProducts();
   }
 }
