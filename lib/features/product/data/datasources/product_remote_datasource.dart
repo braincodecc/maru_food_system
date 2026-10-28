@@ -30,7 +30,7 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
   final FirebaseFirestore _firestore;
 
   ProductRemoteDataSourceImpl({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   String get _collection => 'products';
 
@@ -42,7 +42,7 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
         .get();
 
     return querySnapshot.docs
-        .map((doc) => ProductModel.fromJson(doc.id, doc.data()))
+        .map((doc) => ProductModel.fromMap(doc.id, doc.data()))
         .toList();
   }
 
@@ -51,7 +51,7 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     final querySnapshot = await _firestore.collection(_collection).get();
 
     return querySnapshot.docs
-        .map((doc) => ProductModel.fromJson(doc.id, doc.data()))
+        .map((doc) => ProductModel.fromMap(doc.id, doc.data()))
         .toList();
   }
 
@@ -59,44 +59,106 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
   Future<ProductModel?> getProductById(String productId) async {
     final doc = await _firestore.collection(_collection).doc(productId).get();
     if (!doc.exists || doc.data() == null) return null;
-    return ProductModel.fromJson(doc.id, doc.data()!);
+    return ProductModel.fromMap(doc.id, doc.data()!);
   }
 
   @override
   Future<void> processCheckoutTransaction(Map<String, int> cartItems) async {
     // Usamos una transacción de Firestore para garantizar consistencia absoluta de inventario
     await _firestore.runTransaction((transaction) async {
-      // 1. Fase de Lectura y Validación de stock para todos los ítems del carrito
-      final Map<DocumentReference, int> productsToUpdate = {};
-      final Map<String, DocumentSnapshot> snapshots = {};
+      // Mapas para almacenar las referencias y los nuevos valores calculados
+      final Map<DocumentReference, dynamic> updatesToExecute = {};
 
+      // Acumuladores temporales para calcular el consumo total de ingredientes si se piden varios platos iguales
+      final Map<String, double> requiredIngredientsDelta = {};
+
+      // 1. Fase de Lectura y Validación exhaustiva (Productos y Recetas/Ingredientes)
       for (var entry in cartItems.entries) {
         final productId = entry.key;
         final requestedQuantity = entry.value;
 
-        final docRef = _firestore.collection(_collection).doc(productId);
-        final snapshot = await transaction.get(docRef);
+        final productDocRef = _firestore.collection(_collection).doc(productId);
+        final productSnapshot = await transaction.get(productDocRef);
 
-        if (!snapshot.exists) {
-          throw Exception('El producto con ID $productId ya no existe en el sistema.');
+        if (!productSnapshot.exists || productSnapshot.data() == null) {
+          throw Exception(
+            'El producto con ID $productId ya no existe en el sistema.',
+          );
         }
 
-        final currentStock = snapshot.data()?['stock'] ?? 0;
-        final productName = snapshot.data()?['name'] ?? 'Producto';
+        final productData = productSnapshot.data()!;
+        final productName = productData['name'] ?? 'Producto';
+        final productType = productData['type'] ?? 'comprado';
+        final currentStock = productData['stock'] ?? 0;
 
+        // Validación de stock del producto en sí
         if (currentStock < requestedQuantity) {
           throw Exception(
             'Stock insuficiente para "$productName". Disponible: $currentStock, solicitado: $requestedQuantity.',
           );
         }
 
-        snapshots[productId] = snapshot;
-        productsToUpdate[docRef] = currentStock - requestedQuantity;
+        // Programamos el descuento del producto principal
+        updatesToExecute[productDocRef] = {
+          'stock': currentStock - requestedQuantity,
+        };
+
+        // Si el producto es FABRICADO, debemos validar y descontar sus ingredientes de la colección 'ingredients'
+        if (productType == 'fabricado') {
+          final List<dynamic> recipeList = productData['recipe'] ?? [];
+
+          for (var recipeItem in recipeList) {
+            final ingredientId = recipeItem['ingredientId'];
+            final double quantityPerUnit =
+                (recipeItem['quantityRequired'] ?? 0.0).toDouble();
+            final double totalNeededForThisItem =
+                quantityPerUnit * requestedQuantity;
+
+            // Acumulamos por si el carrito incluye varios productos que usan el mismo ingrediente
+            requiredIngredientsDelta[ingredientId] =
+                (requiredIngredientsDelta[ingredientId] ?? 0.0) +
+                totalNeededForThisItem;
+          }
+        }
       }
 
-      // 2. Fase de Escritura (Descuento atómico del stock)
-      for (var entry in productsToUpdate.entries) {
-        transaction.update(entry.key, {'stock': entry.value});
+      // 2. Validación y lectura de los Ingredientes requeridos en el almacén
+      for (var entry in requiredIngredientsDelta.entries) {
+        final ingredientId = entry.key;
+        final totalNeeded = entry.value;
+
+        final ingredientDocRef = _firestore
+            .collection('ingredients')
+            .doc(ingredientId);
+        final ingredientSnapshot = await transaction.get(ingredientDocRef);
+
+        if (!ingredientSnapshot.exists || ingredientSnapshot.data() == null) {
+          throw Exception(
+            'Un ingrediente requerido de la receta ya no existe en el almacén.',
+          );
+        }
+
+        final ingredientData = ingredientSnapshot.data()!;
+        final ingredientName = ingredientData['name'] ?? 'Insumo';
+        final double currentIngredientStock = (ingredientData['stock'] ?? 0.0)
+            .toDouble();
+
+        // Validamos si hay suficiente materia prima en el almacén
+        if (currentIngredientStock < totalNeeded) {
+          throw Exception(
+            'Almacén insuficiente de "$ingredientName". Disponible: $currentIngredientStock, necesario: $totalNeeded.',
+          );
+        }
+
+        // Programamos el descuento atómico en la colección de ingredientes
+        updatesToExecute[ingredientDocRef] = {
+          'stock': currentIngredientStock - totalNeeded,
+        };
+      }
+
+      // 3. Fase de Escritura (Ejecución atómica de todas las actualizaciones juntas)
+      for (var entry in updatesToExecute.entries) {
+        transaction.update(entry.key, entry.value);
       }
     });
   }
@@ -106,7 +168,7 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     await _firestore
         .collection(_collection)
         .doc(product.id.isNotEmpty ? product.id : null)
-        .set(product.toJson());
+        .set(product.toMap());
   }
 
   @override
@@ -114,7 +176,7 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     await _firestore
         .collection(_collection)
         .doc(product.id)
-        .update(product.toJson());
+        .update(product.toMap());
   }
 
   @override

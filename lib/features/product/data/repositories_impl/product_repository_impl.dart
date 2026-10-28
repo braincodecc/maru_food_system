@@ -6,9 +6,8 @@ import '../models/product_model.dart';
 class ProductRepositoryImpl implements ProductRepository {
   final ProductRemoteDataSource _remoteDataSource;
 
-  ProductRepositoryImpl({
-    required ProductRemoteDataSource remoteDataSource,
-  }) : _remoteDataSource = remoteDataSource;
+  ProductRepositoryImpl({required ProductRemoteDataSource remoteDataSource})
+    : _remoteDataSource = remoteDataSource;
 
   @override
   Future<List<ProductEntity>> getActiveProducts() async {
@@ -29,7 +28,9 @@ class ProductRepositoryImpl implements ProductRepository {
   }
 
   @override
-  Future<List<ProductEntity>> validateStockForCheckout(Map<String, int> cartItems) async {
+  Future<List<ProductEntity>> validateStockForCheckout(
+    Map<String, int> cartItems,
+  ) async {
     // Para validar stock antes del pago, consultamos el estado real en Firestore
     // o podemos evaluar los productos solicitados directamente.
     final List<ProductEntity> problematicProducts = [];
@@ -58,40 +59,14 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<void> createProduct(ProductEntity product) async {
     // Convertimos la entidad de dominio a ProductModel para poder enviarla a Firestore
-    final productModel = ProductModel(
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      imageUrl: product.imageUrl,
-      type: product.type,
-      purchasePrice: product.purchasePrice,
-      salePrice: product.salePrice,
-      stock: product.stock,
-      minStock: product.minStock,
-      maxStock: product.maxStock,
-      isActive: product.isActive,
-    );
-
-    await _remoteDataSource.createProduct(productModel);
+    final model = ProductModel.fromEntity(product);
+    await _remoteDataSource.createProduct(model);
   }
 
   @override
   Future<void> updateProduct(ProductEntity product) async {
-    final productModel = ProductModel(
-      id: product.id,
-      name: product.name,
-      description: product.description,
-      imageUrl: product.imageUrl,
-      type: product.type,
-      purchasePrice: product.purchasePrice,
-      salePrice: product.salePrice,
-      stock: product.stock,
-      minStock: product.minStock,
-      maxStock: product.maxStock,
-      isActive: product.isActive,
-    );
-
-    await _remoteDataSource.updateProduct(productModel);
+    final model = ProductModel.fromEntity(product);
+    await _remoteDataSource.updateProduct(model);
   }
 
   @override

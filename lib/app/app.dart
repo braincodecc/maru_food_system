@@ -6,6 +6,7 @@ import 'routes/app_routes.dart';
 // Importación limpia de los módulos mediante sus barrel files
 import '../features/identity/identity.dart';
 import '../features/product/product.dart';
+import '../features/ingredient/ingredient.dart';
 
 class MyApp extends StatelessWidget {
   final SharedPreferences sharedPreferences;
@@ -24,6 +25,11 @@ class MyApp extends StatelessWidget {
         // Módulo de Productos (Carga el menú de Maru Food al instanciarse)
         ChangeNotifierProvider<ProductProvider>(
           create: (_) => createProductProvider()..loadActiveProducts(),
+        ),
+
+        // Módulo de Ingredientes (Carga la materia prima al iniciar)
+        ChangeNotifierProvider<IngredientProvider>(
+          create: (_) => createIngredientProvider()..loadIngredients(),
         ),
       ],
       child: MaterialApp(

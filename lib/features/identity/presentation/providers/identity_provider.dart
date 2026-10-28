@@ -84,6 +84,7 @@ class IdentityProvider with ChangeNotifier {
       await _logoutUseCase();
       _currentUser = null;
     } catch (e) {
+      //String errorMessage = 'Error during logout: ${e.toString()}';
       // Si ocurre un error durante el logout, se puede manejar aquí o propagarlo hacia la UI
     } finally {
       _isLoading = false;

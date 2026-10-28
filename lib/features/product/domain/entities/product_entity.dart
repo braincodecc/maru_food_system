@@ -1,4 +1,5 @@
 import 'product_type.enum.dart';
+import 'recipe_item_entity.dart';
 
 class ProductEntity {
   final String id;
@@ -18,6 +19,8 @@ class ProductEntity {
   
   final bool isActive;        // Para habilitar o deshabilitar el producto en el menú
 
+  final List<RecipeItemEntity> recipe; // Vacío si es 'comprado', con elementos si es 'fabricado'
+
   const ProductEntity({
     required this.id,
     required this.name,
@@ -30,6 +33,7 @@ class ProductEntity {
     required this.minStock,
     required this.maxStock,
     this.isActive = true,
+    this.recipe = const [],
   });
 
   /// Getter de negocio para calcular la ganancia unitaria (Margen)

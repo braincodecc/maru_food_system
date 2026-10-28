@@ -3,19 +3,27 @@ import '../../domain/entities/product_entity.dart';
 import '../../domain/usecases/get_active_products_usecase.dart';
 import '../../domain/usecases/validate_cart_stock_usecase.dart';
 import '../../domain/usecases/process_checkout_usecase.dart';
+import '../../domain/usecases/save_product_usecase.dart';
+import '../../domain/usecases/delete_product_usecase.dart';
 
 class ProductProvider extends ChangeNotifier {
   final GetActiveProductsUseCase _getActiveProductsUseCase;
   final ValidateCartStockUseCase _validateCartStockUseCase;
   final ProcessCheckoutUseCase _processCheckoutUseCase;
+  final SaveProductUseCase _saveProductUseCase;
+  final DeleteProductUseCase _deleteProductUseCase;
 
   ProductProvider({
     required GetActiveProductsUseCase getActiveProductsUseCase,
     required ValidateCartStockUseCase validateCartStockUseCase,
     required ProcessCheckoutUseCase processCheckoutUseCase,
-  })  : _getActiveProductsUseCase = getActiveProductsUseCase,
-        _validateCartStockUseCase = validateCartStockUseCase,
-        _processCheckoutUseCase = processCheckoutUseCase;
+    required SaveProductUseCase saveProductUseCase,
+    required DeleteProductUseCase deleteProductUseCase,
+  }) : _getActiveProductsUseCase = getActiveProductsUseCase,
+       _validateCartStockUseCase = validateCartStockUseCase,
+       _processCheckoutUseCase = processCheckoutUseCase,
+       _saveProductUseCase = saveProductUseCase,
+       _deleteProductUseCase = deleteProductUseCase;
 
   // Estados
   bool _isLoading = false;
@@ -40,7 +48,7 @@ class ProductProvider extends ChangeNotifier {
 
     try {
       _activeProducts = await _getActiveProductsUseCase();
-      
+
       // Inicializamos la caché local con los valores reales del servidor
       _localStockCache.clear();
       for (var product in _activeProducts) {
@@ -80,7 +88,8 @@ class ProductProvider extends ChangeNotifier {
 
       if (problematicProducts.isNotEmpty) {
         final names = problematicProducts.map((p) => p.name).join(', ');
-        _errorMessage = 'Lo sentimos, no hay suficiente stock disponible para: $names';
+        _errorMessage =
+            'Lo sentimos, no hay suficiente stock disponible para: $names';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -116,6 +125,43 @@ class ProductProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _errorMessage = 'Error al procesar la compra: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// 6. Guardar un producto (nuevo o existente)
+  Future<bool> saveProduct(ProductEntity product) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _saveProductUseCase(product);
+      // Recargamos el catálogo para que la UI refleje el cambio de inmediato
+      await loadActiveProducts();
+      return true;
+    } catch (e) {
+      _errorMessage = 'Error al guardar el producto: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// 7. Eliminar un producto
+  Future<bool> deleteProduct(String productId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _deleteProductUseCase(productId);
+      await loadActiveProducts();
+      return true;
+    } catch (e) {
+      _errorMessage = 'Error al eliminar el producto: ${e.toString()}';
       _isLoading = false;
       notifyListeners();
       return false;
