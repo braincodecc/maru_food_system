@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:maru_food_system/app/routes/app_routes.dart';
 import 'package:provider/provider.dart';
 import '../../product.dart';
+import '../../../order/order.dart';
 import '../../../identity/identity.dart'; // Para poder cerrar sesión o validar rol si es necesario
 
 class ClientMenuScreen extends StatefulWidget {
@@ -218,13 +219,14 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
                 );
               },
             ),
-      // Botón flotante para confirmar compra (Checkout)
+      // Botón flotante para ir al Checkout de Pago Móvil
       floatingActionButton: _cart.isNotEmpty
           ? FloatingActionButton.extended(
-              onPressed: () => _handleCheckout(context, productProvider),
+              onPressed: () =>
+                  _handleReserveAndCheckout(context, productProvider),
               icon: const Icon(Icons.shopping_cart_checkout),
               label: Text(
-                'Confirmar Pedido (${_cart.values.reduce((a, b) => a + b)})',
+                'Proceder al Pago (${_cart.values.reduce((a, b) => a + b)})',
               ),
               backgroundColor: Colors.deepOrange,
               foregroundColor: Colors.white,
@@ -242,43 +244,82 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
     );
   }
 
-  /// Lógica para procesar la compra utilizando las validaciones del Provider
-  void _handleCheckout(
+  /// Reservar el stock y navegar a la pantalla de pago si la reserva es exitosa.
+  void _handleReserveAndCheckout(
     BuildContext context,
     ProductProvider productProvider,
   ) async {
-    // Mostramos un indicador de carga o diálogo de proceso
+    final identityProvider = context.read<IdentityProvider>();
+    final orderProvider = context.read<OrderProvider>();
+    final clientId = identityProvider.currentUser?.id;
+
+    if (clientId == null) return;
+
+    // 1. Mostrar diálogo de carga de reserva
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const Center(child: CircularProgressIndicator()),
+      builder: (_) => const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Reservando stock en almacén...',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+          ],
+        ),
+      ),
     );
 
-    // Ejecutamos la validación y compra atómica en Firestore
-    final success = await productProvider.checkout(_cart);
+    // 2. Calcular total
+    double totalAmount = 0.0;
+    _cart.forEach((productId, quantity) {
+      final product = productProvider.activeProducts.firstWhere(
+        (p) => p.id == productId,
+      );
+      totalAmount += product.salePrice * quantity;
+    });
 
-    // Cerramos el diálogo de carga
+    // 3. Ejecutar reserva atómica en Firestore (Crea orden en awaitingPayment)
+    final orderId = await orderProvider.createOrderReservation(
+      clientId: clientId,
+      items: Map.from(_cart),
+      totalAmount: totalAmount,
+    );
+
+    // Ocultar diálogo de carga
     Navigator.of(context).pop();
 
-    if (success) {
-      setState(() {
-        _cart.clear(); // Limpiamos el carrito local
-      });
+    if (orderId != null) {
+      // 4. Guardamos los items del carrito para el Checkout
+      final Map<String, int> cartItems = Map.from(_cart);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('¡Pedido confirmado con éxito! Stock descontado.'),
-          backgroundColor: Colors.green,
+      // 5. Si la reserva fue exitosa, limpiamos el carrito local y navegamos al Checkout con el ID y detalle
+      setState(() => _cart.clear());
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CheckoutScreen(
+            orderId: orderId,
+            cartItems: cartItems,
+            totalAmount: totalAmount,
+            availableProducts: productProvider.activeProducts,
+          ),
         ),
       );
     } else {
-      // Si hubo error de stock o validación, mostramos el mensaje del provider
+      // Si falló por falta de stock, mostramos el error exacto antes de que el cliente pague
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            productProvider.errorMessage ?? 'Error al procesar la compra',
+            orderProvider.errorMessage ?? 'No hay suficiente stock disponible.',
           ),
           backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
         ),
       );
     }

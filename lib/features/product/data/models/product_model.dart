@@ -33,11 +33,16 @@ class ProductModel extends ProductEntity {
       purchasePrice: (json['purchasePrice'] ?? 0.0).toDouble(),
       salePrice: (json['salePrice'] ?? 0.0).toDouble(),
       stock: json['stock'] ?? 0,
-      minStock: json['minStock'] ?? 5, // Valor por defecto sugerido para alertas
+      minStock:
+          json['minStock'] ?? 5, // Valor por defecto sugerido para alertas
       maxStock: json['maxStock'] ?? 50,
       isActive: json['isActive'] ?? true,
-      recipe: (json['recipe'] as List<dynamic>?)
-              ?.map((item) => RecipeItemEntity.fromMap(item as Map<String, dynamic>))
+      recipe:
+          (json['recipe'] as List<dynamic>?)
+              ?.map(
+                (item) =>
+                    RecipeItemEntity.fromMap(item as Map<String, dynamic>),
+              )
               .toList() ??
           [], // Inicializamos la receta como lista vacía si no existe
     );
@@ -75,6 +80,24 @@ class ProductModel extends ProductEntity {
       maxStock: entity.maxStock,
       isActive: entity.isActive,
       recipe: entity.recipe,
+    );
+  }
+
+  /// Convierte este ProductModel en una Entidad pura de dominio (ProductEntity)
+  ProductEntity toEntity() {
+    return ProductEntity(
+      id: id,
+      name: name,
+      description: description,
+      imageUrl: imageUrl,
+      type: type,
+      purchasePrice: purchasePrice,
+      salePrice: salePrice,
+      stock: stock,
+      minStock: minStock,
+      maxStock: maxStock,
+      isActive: isActive,
+      recipe: recipe,
     );
   }
 

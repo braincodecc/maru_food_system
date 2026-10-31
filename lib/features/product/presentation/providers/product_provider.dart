@@ -1,27 +1,19 @@
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/product_entity.dart';
 import '../../domain/usecases/get_active_products_usecase.dart';
-import '../../domain/usecases/validate_cart_stock_usecase.dart';
-import '../../domain/usecases/process_checkout_usecase.dart';
 import '../../domain/usecases/save_product_usecase.dart';
 import '../../domain/usecases/delete_product_usecase.dart';
 
 class ProductProvider extends ChangeNotifier {
   final GetActiveProductsUseCase _getActiveProductsUseCase;
-  final ValidateCartStockUseCase _validateCartStockUseCase;
-  final ProcessCheckoutUseCase _processCheckoutUseCase;
   final SaveProductUseCase _saveProductUseCase;
   final DeleteProductUseCase _deleteProductUseCase;
 
   ProductProvider({
     required GetActiveProductsUseCase getActiveProductsUseCase,
-    required ValidateCartStockUseCase validateCartStockUseCase,
-    required ProcessCheckoutUseCase processCheckoutUseCase,
     required SaveProductUseCase saveProductUseCase,
     required DeleteProductUseCase deleteProductUseCase,
   }) : _getActiveProductsUseCase = getActiveProductsUseCase,
-       _validateCartStockUseCase = validateCartStockUseCase,
-       _processCheckoutUseCase = processCheckoutUseCase,
        _saveProductUseCase = saveProductUseCase,
        _deleteProductUseCase = deleteProductUseCase;
 
@@ -76,62 +68,7 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  /// 4. Validar stock en servidor justo antes de confirmar el checkout
-  /// Recibe un mapa con [productId: cantidadDeseada]
-  Future<bool> validateCheckout(Map<String, int> cartItems) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final problematicProducts = await _validateCartStockUseCase(cartItems);
-
-      if (problematicProducts.isNotEmpty) {
-        final names = problematicProducts.map((p) => p.name).join(', ');
-        _errorMessage =
-            'Lo sentimos, no hay suficiente stock disponible para: $names';
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = 'Error al validar el stock: ${e.toString()}';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  /// 5. Confirmar compra (descuenta stock en Firestore de forma atómica)
-  Future<bool> checkout(Map<String, int> cartItems) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      // Validamos una última vez antes de procesar
-      bool isValid = await validateCheckout(cartItems);
-      if (!isValid) return false;
-
-      // Procesamos el pago y descuento atómico en el servidor
-      await _processCheckoutUseCase(cartItems);
-
-      // Recargamos los productos para refrescar los stocks reales
-      await loadActiveProducts();
-      return true;
-    } catch (e) {
-      _errorMessage = 'Error al procesar la compra: ${e.toString()}';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  /// 6. Guardar un producto (nuevo o existente)
+  /// 4. Guardar un producto (nuevo o existente)
   Future<bool> saveProduct(ProductEntity product) async {
     _isLoading = true;
     _errorMessage = null;
@@ -150,7 +87,7 @@ class ProductProvider extends ChangeNotifier {
     }
   }
 
-  /// 7. Eliminar un producto
+  /// 5. Eliminar un producto
   Future<bool> deleteProduct(String productId) async {
     _isLoading = true;
     _errorMessage = null;

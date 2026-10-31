@@ -7,6 +7,7 @@ import 'routes/app_routes.dart';
 import '../features/identity/identity.dart';
 import '../features/product/product.dart';
 import '../features/ingredient/ingredient.dart';
+import '../features/order/order.dart';
 
 class MyApp extends StatelessWidget {
   final SharedPreferences sharedPreferences;
@@ -30,6 +31,11 @@ class MyApp extends StatelessWidget {
         // Módulo de Ingredientes (Carga la materia prima al iniciar)
         ChangeNotifierProvider<IngredientProvider>(
           create: (_) => createIngredientProvider()..loadIngredients(),
+        ),
+
+        // Módulo de Ordenes
+        ChangeNotifierProvider<OrderProvider>(
+          create: (_) => createOrderProvider(),
         ),
       ],
       child: MaterialApp(

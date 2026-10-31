@@ -12,48 +12,19 @@ class ProductRepositoryImpl implements ProductRepository {
   @override
   Future<List<ProductEntity>> getActiveProducts() async {
     final models = await _remoteDataSource.getActiveProducts();
-    // Como ProductModel extiende de ProductEntity, podemos retornarlos directamente
-    return models;
+    return models.map((model) => model.toEntity()).toList();
   }
 
   @override
   Future<List<ProductEntity>> getAllProductsForAdmin() async {
     final models = await _remoteDataSource.getAllProductsForAdmin();
-    return models;
+    return models.map((model) => model.toEntity()).toList();
   }
 
   @override
   Future<ProductEntity?> getProductById(String productId) async {
-    return await _remoteDataSource.getProductById(productId);
-  }
-
-  @override
-  Future<List<ProductEntity>> validateStockForCheckout(
-    Map<String, int> cartItems,
-  ) async {
-    // Para validar stock antes del pago, consultamos el estado real en Firestore
-    // o podemos evaluar los productos solicitados directamente.
-    final List<ProductEntity> problematicProducts = [];
-
-    for (var entry in cartItems.entries) {
-      final productId = entry.key;
-      final requestedQty = entry.value;
-
-      final product = await _remoteDataSource.getProductById(productId);
-      if (product == null || product.stock < requestedQty) {
-        if (product != null) {
-          problematicProducts.add(product);
-        }
-      }
-    }
-
-    return problematicProducts;
-  }
-
-  @override
-  Future<void> processCheckout(Map<String, int> cartItems) async {
-    // Delega directamente en la transacción atómica del datasource remoto
-    await _remoteDataSource.processCheckoutTransaction(cartItems);
+    final model = await _remoteDataSource.getProductById(productId);
+    return model?.toEntity();
   }
 
   @override

@@ -10,13 +10,6 @@ abstract class ProductRepository {
   /// Obtiene un producto específico por su ID
   Future<ProductEntity?> getProductById(String productId);
 
-  /// Valida de forma masiva el stock actual en el servidor justo antes de confirmar el checkout (la compra)
-  /// Retorna una lista con los productos que no tienen stock suficiente (si está vacía, todo OK)
-  Future<List<ProductEntity>> validateStockForCheckout(Map<String, int> cartItems);
-
-  /// Procesa la compra final: descuenta stock en Firestore, maneja recetas si son fabricados y registra la venta
-  Future<void> processCheckout(Map<String, int> cartItems);
-
   // --- Métodos de Gestión del Administrador ---
 
   /// Crea un nuevo producto (comprado o fabricado con su lista de materiales)
