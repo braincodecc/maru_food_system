@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../features/identity/identity.dart';
 import '../../features/product/product.dart';
 import '../../features/ingredient/ingredient.dart';
+import '../../features/order/order.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -12,6 +13,9 @@ class AppRoutes {
   static const String adminProducts = '/admin/products';
   static const String adminDashboardProducts = '/admin/dashboard/Products';
   static const String adminIngredients = '/admin/ingredients';
+  static const String clientOrders = '/client/orders';
+  static const String activeClientOrder = '/client/orders/active';
+  static const String adminOrders = '/admin/orders';
   static const String kitchen = '/kitchen';
 
   /// Mapa global de rutas de la aplicación
@@ -38,13 +42,25 @@ class AppRoutes {
       // 5. Panel Principal del Administrador protegido por RoleGuard
       adminDashboardProducts: (context) => RoleGuard(
         allowedRoles: const [UserRole.admin],
-        child: const AdminDashboardScreen(),
+        child: const AdminProductsScreen(),
       ),
 
       // 6. Gestión de Ingredientes (Protegido para Admin)
       adminIngredients: (context) => RoleGuard(
         allowedRoles: const [UserRole.admin],
         child: const AdminIngredientsScreen(),
+      ),
+
+      // 7. Gestión de Órdenes (Protegido para Admin)
+      adminOrders: (context) => RoleGuard(
+        allowedRoles: const [UserRole.admin],
+        child: const AdminOrdersScreen(),
+      ),
+
+      // 8. Órdenes Activas del Cliente (Protegido para Admin)
+      activeClientOrder: (context) => RoleGuard(
+        allowedRoles: const [UserRole.cliente],
+        child: const ClientActiveOrderScreen(),
       ),
 
       // Ruta protegida para Cocineros y Administradores (Módulo Cocina/KDS)

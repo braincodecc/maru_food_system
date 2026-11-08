@@ -18,7 +18,9 @@ class OrderModel extends OrderEntity {
   factory OrderModel.fromMap(String id, Map<String, dynamic> json) {
     // Mapeamos los ítems de Map<String, dynamic> a Map<String, int>
     final rawItems = json['items'] as Map<String, dynamic>? ?? {};
-    final Map<String, int> parsedItems = rawItems.map((key, value) => MapEntry(key, (value as num).toInt()));
+    final Map<String, int> parsedItems = rawItems.map(
+      (key, value) => MapEntry(key, (value as num).toInt()),
+    );
 
     return OrderModel(
       id: id,
@@ -38,7 +40,8 @@ class OrderModel extends OrderEntity {
       'clientId': clientId,
       'items': items,
       'totalAmount': totalAmount,
-      'status': status.name, // Guardamos el nombre del enum como String ('pendingVerification', etc.)
+      'status': status
+          .name, // Guardamos el nombre del enum como String ('pendingVerification', etc.)
       'paymentReference': paymentReference,
       'clientPhone': clientPhone,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -59,6 +62,21 @@ class OrderModel extends OrderEntity {
     );
   }
 
+  /// Convierte este OrderModel en una Entidad pura de dominio (OrderEntity)
+  OrderEntity toEntity() {
+    return OrderEntity(
+      id: id,
+      clientId: clientId,
+      items: items,
+      totalAmount: totalAmount,
+      status: status,
+      paymentReference: paymentReference,
+      clientPhone: clientPhone,
+      createdAt: createdAt,
+    );
+  }
+
+  /// Convierte un String a OrderStatus enum
   static OrderStatus _parseStatus(String? statusStr) {
     switch (statusStr) {
       case 'approved':

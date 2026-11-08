@@ -28,8 +28,8 @@ class OrderProvider extends ChangeNotifier {
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
 
-  List<OrderEntity> _orders = [];
-  List<OrderEntity> get orders => _orders;
+  List<OrderEntity> _allOrders = [];
+  List<OrderEntity> get allOrders => _allOrders;
 
   /// Reserva el stock y crea el pedido en estado awaitingPayment
   Future<String?> createOrderReservation({
@@ -97,7 +97,7 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _orders = await _getOrdersUseCase.forClient(clientId);
+      _allOrders = await _getOrdersUseCase.forClient(clientId);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -106,23 +106,28 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  /// Cargar todos los pedidos (para el Administrador)
+  /// Carga todos los pedidos para la vista del administrador
   Future<void> loadAllOrders() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _orders = await _getOrdersUseCase.all();
+      _allOrders = await _getOrdersUseCase.all();
     } catch (e) {
-      _errorMessage = e.toString();
+      _errorMessage = 'Error al cargar los pedidos: ${e.toString()}';
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Cambiar estado (Aprobar o Rechazar con devolución automática de stock)
+  /// Observa el pedido activo del cliente en tiempo real
+  Stream<OrderEntity?> watchActiveOrder(String clientId) {
+    return _getOrdersUseCase.activeForClient(clientId);
+  }
+
+  /// Cambia el estado de un pedido (Aprobar, Rechazar, Entregado)
   Future<bool> changeOrderStatus(
     String orderId,
     OrderStatus newStatus, {

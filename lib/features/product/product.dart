@@ -7,7 +7,7 @@ export 'domain/entities/recipe_item_entity.dart';
 export 'presentation/providers/product_provider.dart';
 export 'presentation/screens/client_menu_screen.dart';
 export 'presentation/screens/admin_product_form_screen.dart';
-export 'presentation/screens/admin_dashboard_screen.dart';
+export 'presentation/screens/admin_products_screen.dart';
 
 // 3. Exportar Inyección de Dependencias
 export 'di/product_injector.dart';

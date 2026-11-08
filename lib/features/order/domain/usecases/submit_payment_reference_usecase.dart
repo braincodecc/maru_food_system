@@ -9,7 +9,7 @@ class SubmitPaymentReferenceUsecase {
     required String paymentReference,
     required String clientPhone,
   }) async {
-    return await _repository.submitPaymentReference(
+    return await _repository.submitOrderPaymentReference(
       orderId,
       paymentReference,
       clientPhone,

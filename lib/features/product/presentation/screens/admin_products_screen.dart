@@ -4,8 +4,22 @@ import 'package:provider/provider.dart';
 import '../../product.dart';
 import '../../../identity/identity.dart'; // Para el botón de cerrar sesión
 
-class AdminDashboardScreen extends StatelessWidget {
-  const AdminDashboardScreen({super.key});
+class AdminProductsScreen extends StatefulWidget {
+  const AdminProductsScreen({super.key});
+
+  @override
+  State<AdminProductsScreen> createState() => _AdminProductsScreenState();
+}
+
+class _AdminProductsScreenState extends State<AdminProductsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Se ejecuta automáticamente al abrir la pantalla para garantizar datos frescos
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProductProvider>().loadActiveProducts();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,11 +37,13 @@ class AdminDashboardScreen extends StatelessWidget {
             onPressed: () async {
               await identityProvider.logout();
               // AuthWrapper redirigirá automáticamente al Login
-                            // Limpiamos todo el historial de navegación y regresamos al AuthWrapper raíz ('/')
-              Navigator.pushNamedAndRemoveUntil( // Elimina todas las pantallas superiores de la pila
+              // Limpiamos todo el historial de navegación y regresamos al AuthWrapper raíz ('/')
+              Navigator.pushNamedAndRemoveUntil(
+                // Elimina todas las pantallas superiores de la pila
                 context,
                 AppRoutes.initial,
-                (route) => false, // Elimina todas las pantallas anteriores de la pila
+                (route) =>
+                    false, // Elimina todas las pantallas anteriores de la pila
               );
             },
           ),

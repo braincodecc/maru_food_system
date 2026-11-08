@@ -11,18 +11,18 @@ class OrderRepositoryImpl implements OrderRepository {
     : _remoteDataSource = remoteDataSource;
 
   @override
-  Future<String?> createOrderReservation(OrderEntity order) async {
+  Future<String?> createOrderWithStockReservation(OrderEntity order) async {
     final model = OrderModel.fromEntity(order);
     return await _remoteDataSource.createOrderWithStockReservation(model);
   }
 
   @override
-  Future<void> submitPaymentReference(
+  Future<void> submitOrderPaymentReference(
     String orderId,
     String paymentReference,
     String clientPhone,
   ) async {
-    await _remoteDataSource.submitPaymentReference(
+    await _remoteDataSource.submitOrderPaymentReference(
       orderId,
       paymentReference,
       clientPhone,
@@ -31,13 +31,27 @@ class OrderRepositoryImpl implements OrderRepository {
 
   @override
   Future<List<OrderEntity>> getOrdersForClient(String clientId) async {
-    return await _remoteDataSource.getOrdersForClient(clientId);
+    final models = await _remoteDataSource.getOrdersForClient(clientId);
+    return models.map((model) => model.toEntity()).toList();
   }
 
   @override
   Future<List<OrderEntity>> getAllOrders() async {
-    return await _remoteDataSource.getAllOrders();
+    final models = await _remoteDataSource.getAllOrders();
+    return models.map((model) => model.toEntity()).toList();
   }
+
+  @override
+  Future<bool> hasActiveOrder(String clientId) async {
+    return await _remoteDataSource.hasActiveOrder(clientId);
+  }
+  
+  @override
+  Stream<OrderEntity?> watchActiveOrder(String clientId) {
+    final modelStream = _remoteDataSource.watchActiveOrder(clientId);
+    return modelStream.map((model) => model?.toEntity());
+  }
+
 
   @override
   Future<void> updateOrderStatus(String orderId, OrderStatus newStatus) async {

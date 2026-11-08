@@ -104,6 +104,31 @@ class AdminHomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              SizedBox(height: 8),
+
+              // Botón terciario para acceder a la gestión de ordenes
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.adminOrders);
+                },
+                icon: const Icon(Icons.receipt_long),
+                label: const Text('Gestionar Órdenes'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue, // O el color de tu preferencia
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
