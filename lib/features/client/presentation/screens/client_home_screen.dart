@@ -81,8 +81,7 @@ class ClientHomeScreen extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: () {
                   // Navegamos al menú utilizando la ruta nombrada centralizada
-                  Navigator.pushNamed(context, AppRoutes.activeClientOrder,
-                      arguments: {'clientId': identityProvider.currentUser?.id});
+                  Navigator.pushNamed(context, AppRoutes.activeClientOrder);
                 },
                 icon: const Icon(Icons.restaurant_menu),
                 label: const Text('Ver Orden Activa'),
