@@ -76,17 +76,17 @@ class ClientHomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 14),
 
               ElevatedButton.icon(
                 onPressed: () {
                   // Navegamos al menú utilizando la ruta nombrada centralizada
                   Navigator.pushNamed(context, AppRoutes.activeClientOrder);
                 },
-                icon: const Icon(Icons.restaurant_menu),
+                icon: const Icon(Icons.receipt_long),
                 label: const Text('Ver Orden Activa'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 60, 34, 255),
+                  backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,

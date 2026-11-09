@@ -44,4 +44,16 @@ class IngredientModel extends IngredientEntity {
       unitCost: entity.unitCost,
     );
   }
+
+  /// Convierte este IngredientModel en una Entidad pura de dominio (IngredientEntity)
+  IngredientEntity toEntity() {
+    return IngredientEntity(
+      id: id,
+      name: name,
+      unit: unit,
+      stock: stock,
+      minStock: minStock,
+      unitCost: unitCost,
+    );
+  }
 }

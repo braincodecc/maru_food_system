@@ -289,17 +289,32 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                         itemCount: _recipeItems.length,
                         itemBuilder: (context, index) {
                           final item = _recipeItems[index];
+
+                          // HOMOLOGACIÓN DINÁMICA: Buscamos el nombre y la unidad actual del ingrediente
+                          // usando su ID dentro de la lista del provider, evitando guardar nombres estáticos.
+                          final ingredientDetails = ingredientProvider.ingredients.firstWhere(
+                            (ing) => ing.id == item.ingredientId,
+                            orElse: () => IngredientEntity(
+                              id: item.ingredientId,
+                              name: 'Ingrediente Desconocido',
+                              unit: 'unid',
+                              unitCost: 0,
+                              stock: 0,
+                              minStock: 0,
+                            ),
+                          );
+
                           return Card(
                             margin: const EdgeInsets.only(bottom: 8),
                             child: ListTile(
                               title: Text(
-                                item.ingredientName,
+                                ingredientDetails.name,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               subtitle: Text(
-                                'Cantidad requerida por plato: ${item.quantityRequired}',
+                                'Cantidad requerida por plato: ${item.quantityRequired} ${ingredientDetails.unit}',
                               ),
                               trailing: IconButton(
                                 icon: const Icon(
@@ -423,14 +438,14 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                 if (existingIndex >= 0) {
                   _recipeItems[existingIndex] = RecipeItemEntity(
                     ingredientId: selectedIngredient!.id,
-                    ingredientName: selectedIngredient!.name,
+                    //ingredientName: selectedIngredient!.name,
                     quantityRequired: qty,
                   );
                 } else {
                   _recipeItems.add(
                     RecipeItemEntity(
                       ingredientId: selectedIngredient!.id,
-                      ingredientName: selectedIngredient!.name,
+                      //ingredientName: selectedIngredient!.name,
                       quantityRequired: qty,
                     ),
                   );

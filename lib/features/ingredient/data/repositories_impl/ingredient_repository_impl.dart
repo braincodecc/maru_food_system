@@ -12,7 +12,14 @@ class IngredientRepositoryImpl implements IngredientRepository {
 
   @override
   Future<List<IngredientEntity>> getAllIngredients() async {
-    return await _remoteDataSource.getAllIngredients();
+    final model = await _remoteDataSource.getAllIngredients();
+    return model.map((ingredientModel) => ingredientModel.toEntity()).toList();
+  }
+
+  @override
+  Future<IngredientEntity?> getIngredientById(String ingredientId) async {
+    final model = await _remoteDataSource.getIngredientById(ingredientId);
+    return model?.toEntity();
   }
 
   @override

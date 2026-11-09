@@ -187,17 +187,16 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
   }
 
   @override
-  Future<bool> hasActiveOrder(String userId) async {
+  Future<bool> hasActiveOrder(String clientId) async {
     return Future(() async {
       final snapshot = await _firestore
           .collection('orders')
-          .where('userId', isEqualTo: userId)
+          .where('clientId', isEqualTo: clientId)
           .where(
             'status',
             whereIn: [
               OrderStatus.pendingVerification.name,
               OrderStatus.approved.name,
-              OrderStatus.delivered.name,
             ],
           )
           .limit(1)
