@@ -63,6 +63,14 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
         p.recipe,
       ); // Cargamos la receta existente si se está editando
     }
+
+    // CAMBIO 1: Escuchamos los cambios en tiempo real para redibujar las métricas financieras
+    _purchasePriceController.addListener(_onPriceChanged);
+    _salePriceController.addListener(_onPriceChanged);
+  }
+
+  void _onPriceChanged() {
+    setState(() {});
   }
 
   @override
@@ -82,6 +90,16 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
   Widget build(BuildContext context) {
     final isEditing = widget.productToEdit != null;
     final ingredientProvider = context.watch<IngredientProvider>();
+    final availableIngredients = ingredientProvider.ingredients;
+
+    // Cálculo financiero en tiempo real para la UI
+    final currentCost = _calculateCurrentProductionCost(availableIngredients);
+    final salePrice = double.tryParse(_salePriceController.text) ?? 0.0;
+    final netProfit = salePrice - currentCost;
+    final profitPercentage = salePrice > 0
+        ? (netProfit / salePrice) * 100
+        : 0.0;
+    final bool isProfitable = salePrice > currentCost;
 
     return Scaffold(
       appBar: AppBar(
@@ -165,6 +183,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _purchasePriceController,
+                      enabled: _selectedType == ProductType.comprado, // Deshabilitado si es fabricado
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -194,6 +213,73 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+
+              // CAMBIO 2: Tarjeta visual de Rentabilidad en tiempo real
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isProfitable ? Colors.green[50] : Colors.red[50],
+                  border: Border.all(
+                    color: isProfitable ? Colors.green : Colors.red,
+                    width: 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Análisis Financiero - Maru Food',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Icon(
+                          isProfitable
+                              ? Icons.trending_up
+                              : Icons.warning_amber_rounded,
+                          color: isProfitable ? Colors.green : Colors.red,
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 14),
+                    Text(
+                      _selectedType == ProductType.fabricado
+                          ? 'Costo Total de Producción (Receta): \$${currentCost.toStringAsFixed(2)}'
+                          : 'Costo de Adquisición: \$${currentCost.toStringAsFixed(2)}',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Ganancia Neta: \$${netProfit.toStringAsFixed(2)} (${profitPercentage.toStringAsFixed(1)}%)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                        color: isProfitable
+                            ? Colors.green[800]
+                            : Colors.red[800],
+                      ),
+                    ),
+                    if (!isProfitable)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 6.0),
+                        child: Text(
+                          '⚠️ Advertencia: El precio de venta debe ser mayor al costo para garantizar ganancias.',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -292,17 +378,19 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
 
                           // HOMOLOGACIÓN DINÁMICA: Buscamos el nombre y la unidad actual del ingrediente
                           // usando su ID dentro de la lista del provider, evitando guardar nombres estáticos.
-                          final ingredientDetails = ingredientProvider.ingredients.firstWhere(
-                            (ing) => ing.id == item.ingredientId,
-                            orElse: () => IngredientEntity(
-                              id: item.ingredientId,
-                              name: 'Ingrediente Desconocido',
-                              unit: 'unid',
-                              unitCost: 0,
-                              stock: 0,
-                              minStock: 0,
-                            ),
-                          );
+                          final ingredientDetails = ingredientProvider
+                              .ingredients
+                              .firstWhere(
+                                (ing) => ing.id == item.ingredientId,
+                                orElse: () => IngredientEntity(
+                                  id: item.ingredientId,
+                                  name: 'Ingrediente Desconocido',
+                                  unit: 'unid',
+                                  unitCost: 0,
+                                  stock: 0,
+                                  minStock: 0,
+                                ),
+                              );
 
                           return Card(
                             margin: const EdgeInsets.only(bottom: 8),
@@ -344,9 +432,11 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Botón Guardar
+              // CAMBIO 3: Botón Guardar condicionado (Bloqueado si no es rentable)
               ElevatedButton(
-                onPressed: _isLoading ? null : () => _saveProduct(context),
+                onPressed: (_isLoading || !isProfitable)
+                    ? null
+                    : () => _saveProduct(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepOrange,
                   foregroundColor: Colors.white,
@@ -482,7 +572,9 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
       minStock: int.parse(_minStockController.text),
       maxStock: int.parse(_maxStockController.text),
       isActive: _isActive,
-      recipe: _selectedType == ProductType.fabricado ? _recipeItems : [], // Guardamos la receta si es fabricado
+      recipe: _selectedType == ProductType.fabricado
+          ? _recipeItems
+          : [], // Guardamos la receta si es fabricado
     );
 
     final success = await productProvider.saveProduct(product);
@@ -503,5 +595,40 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
         ),
       );
     }
+  }
+
+  /// Método auxiliar para calcular el costo actual de producción basado en los ingredientes seleccionados y sus cantidades requeridas.
+  /// Actualiza automáticamente el texto del controlador de costo si es fabricado.
+  double _calculateCurrentProductionCost(
+    List<IngredientEntity> availableIngredients,
+  ) {
+    if (_selectedType == ProductType.comprado) {
+      return double.tryParse(_purchasePriceController.text) ?? 0.0;
+    }
+
+    double totalCost = 0.0;
+    for (var item in _recipeItems) {
+      final ingredient = availableIngredients.firstWhere(
+        (ing) => ing.id == item.ingredientId,
+        orElse: () => IngredientEntity(
+          id: item.ingredientId,
+          name: '',
+          unit: '',
+          unitCost: 0,
+          stock: 0,
+          minStock: 0,
+        ),
+      );
+      totalCost += item.quantityRequired * ingredient.unitCost;
+    }
+
+    // Sincronizamos el valor calculado con el controlador en el siguiente frame para evitar errores de renderizado
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_purchasePriceController.text != totalCost.toStringAsFixed(2)) {
+        _purchasePriceController.text = totalCost.toStringAsFixed(2);
+      }
+    });
+
+    return totalCost;
   }
 }

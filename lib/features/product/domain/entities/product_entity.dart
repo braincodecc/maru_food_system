@@ -47,4 +47,16 @@ class ProductEntity {
   /// Getter para saber si el producto está en estado crítico de stock (necesita reposición)
   bool get needsRestock => stock <= minStock;
 
+  /// Calcula la ganancia neta en dinero (\$): Venta - Costo real
+  double calculateNetProfit(double productionCost) {
+    return salePrice - productionCost;
+  }
+
+  /// Calcula el porcentaje de margen de ganancia respecto al precio de venta o costo
+  double calculateProfitPercentage(double productionCost) {
+    if (salePrice <= 0) return 0.0;
+    final profit = calculateNetProfit(productionCost);
+    return (profit / salePrice) *
+        100; // Margen sobre el precio de venta (estándar comercial)
+  }
 }
