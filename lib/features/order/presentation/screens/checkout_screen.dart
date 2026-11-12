@@ -5,14 +5,14 @@ import '../../../product/product.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final String orderId;
-  final Map<String, int> cartItems;
+  final List<OrderItemEntity> items;
   final double totalAmount;
   final List<ProductEntity> availableProducts;
 
   const CheckoutScreen({
     super.key,
     required this.orderId,
-    required this.cartItems,
+    required this.items,
     required this.totalAmount,
     required this.availableProducts,
   });
@@ -87,32 +87,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
                     children: [
-                      ...widget.cartItems.entries.map((entry) {
-                        final product = widget.availableProducts.firstWhere(
-                          (p) => p.id == entry.key,
-                          orElse: () => ProductEntity(
-                            id: '',
-                            name: 'Producto',
-                            description: '',
-                            imageUrl: '',
-                            type: ProductType.comprado,
-                            purchasePrice: 0,
-                            salePrice: 0,
-                            stock: 0,
-                            minStock: 0,
-                            maxStock: 0,
-                            isActive: true,
-                            recipe: [],
-                          ),
-                        );
+                      ...widget.items.map((item) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('${entry.value} x ${product.name}'),
+                              Text('${item.quantity} x ${item.productName}'),
                               Text(
-                                '\$${(product.salePrice * entry.value).toStringAsFixed(2)}',
+                                '\$${(item.unitPrice * item.quantity).toStringAsFixed(2)}',
                               ),
                             ],
                           ),

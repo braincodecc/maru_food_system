@@ -4,6 +4,8 @@ enum OrderStatus {
   approved,            // Pago aprobado, stock descontado definitivamente, pasa a cocina
   rejected,            // Pago falso o no encontrado, stock devuelto al almacén
   delivered,           // Pedido entregado al cliente
+  completed,           // Pedido finalizado, ingresos distribuidos a cuentas virtuales
+  inPreparation,        // Pedido en preparación, stock descontado definitivamente, pasa a cocina
 }
 
 extension OrderStatusExtension on OrderStatus {
@@ -19,6 +21,10 @@ extension OrderStatusExtension on OrderStatus {
         return 'Rechazado';
       case OrderStatus.delivered:
         return 'Entregado';
+      case OrderStatus.completed:
+        return 'Completado';
+      case OrderStatus.inPreparation:
+        return 'En Preparación';
     }
   }
 }

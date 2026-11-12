@@ -42,16 +42,21 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
+  Future<OrderEntity?> getOrderById(String orderId) async {
+    final model = await _remoteDataSource.getOrderById(orderId);
+    return model?.toEntity();
+  }
+
+  @override
   Future<bool> hasActiveOrder(String clientId) async {
     return await _remoteDataSource.hasActiveOrder(clientId);
   }
-  
+
   @override
   Stream<OrderEntity?> watchActiveOrder(String clientId) {
     final modelStream = _remoteDataSource.watchActiveOrder(clientId);
     return modelStream.map((model) => model?.toEntity());
   }
-
 
   @override
   Future<void> updateOrderStatus(String orderId, OrderStatus newStatus) async {

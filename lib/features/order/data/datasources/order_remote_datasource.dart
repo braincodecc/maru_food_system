@@ -12,6 +12,7 @@ abstract class OrderRemoteDataSource {
   );
   Future<List<OrderModel>> getOrdersForClient(String clientId);
   Future<List<OrderModel>> getAllOrders();
+  Future<OrderModel?> getOrderById(String orderId);
   Future<bool> hasActiveOrder(String userId);
   Stream<OrderModel?> watchActiveOrder(String userId);
   Future<void> updateOrderStatus(String orderId, OrderStatus newStatus);
@@ -38,9 +39,9 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
             final Map<String, double> requiredIngredientsDelta = {};
 
             // 1. Validar stock de cada producto y sus recetas
-            for (var entry in order.items.entries) {
-              final productId = entry.key;
-              final requestedQuantity = entry.value;
+            for (var entry in order.items) {
+              final productId = entry.productId;
+              final requestedQuantity = entry.quantity;
 
               final productRef = _firestore
                   .collection('products')
@@ -187,6 +188,17 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
   }
 
   @override
+  Future<OrderModel?> getOrderById(String orderId) async {
+    return Future(() async {
+      final docSnap = await _firestore.collection('orders').doc(orderId).get();
+
+      if (!docSnap.exists) return null;
+
+      return OrderModel.fromMap(docSnap.id, docSnap.data()!);
+    }).guard();
+  }
+
+  @override
   Future<bool> hasActiveOrder(String clientId) async {
     return Future(() async {
       final snapshot = await _firestore
@@ -216,7 +228,6 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
           whereIn: [
             OrderStatus.pendingVerification.name,
             OrderStatus.approved.name,
-            OrderStatus.delivered.name,
           ],
         )
         .limit(1)

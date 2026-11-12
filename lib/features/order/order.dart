@@ -1,5 +1,6 @@
 // 1. Exportar Dominio: Entidades y Enums (Entities & Enums)
 export 'domain/entities/order_entity.dart';
+export 'domain/entities/order_item_entity.dart';
 export 'domain/entities/order_status.enum.dart';
 
 // 2. Exportar Presentación: Lógica de Negocio (Providers, Guards, Screens, Widgets)

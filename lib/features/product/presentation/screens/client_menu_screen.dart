@@ -274,19 +274,32 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
       ),
     );
 
-    // 2. Calcular total
+    // 2. Transformar el Map del carrito en una List<OrderItemEntity> (congelando el Snapshot)
+    final List<OrderItemEntity> orderItems = [];
     double totalAmount = 0.0;
+
     _cart.forEach((productId, quantity) {
       final product = productProvider.activeProducts.firstWhere(
         (p) => p.id == productId,
       );
+
       totalAmount += product.salePrice * quantity;
+
+      orderItems.add(
+        OrderItemEntity(
+          productId: product.id,
+          productName: product.name,      // Snapshot del nombre
+          unitPrice: product.salePrice,   // Snapshot del precio de venta
+          unitCost: product.purchasePrice,// Snapshot del costo de producción
+          quantity: quantity.toDouble(),  // Cantidad comprada
+        ),
+      );
     });
 
-    // 3. Ejecutar reserva atómica en Firestore (Crea orden en awaitingPayment)
+    /// 3. Ejecutar reserva atómica en Firestore pasando la lista de entidades
     final orderId = await orderProvider.createOrderReservation(
       clientId: clientId,
-      items: Map.from(_cart),
+      items: orderItems,
       totalAmount: totalAmount,
     );
 
@@ -294,10 +307,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
     Navigator.of(context).pop();
 
     if (orderId != null) {
-      // 4. Guardamos los items del carrito para el Checkout
-      final Map<String, int> cartItems = Map.from(_cart);
-
-      // 5. Si la reserva fue exitosa, limpiamos el carrito local y navegamos al Checkout con el ID y detalle
+      // 4. Si la reserva fue exitosa, limpiamos el carrito local y navegamos al Checkout con el ID y detalle
       setState(() => _cart.clear());
 
       Navigator.push(
@@ -305,7 +315,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
         MaterialPageRoute(
           builder: (_) => CheckoutScreen(
             orderId: orderId,
-            cartItems: cartItems,
+            items: orderItems,
             totalAmount: totalAmount,
             availableProducts: productProvider.activeProducts,
           ),

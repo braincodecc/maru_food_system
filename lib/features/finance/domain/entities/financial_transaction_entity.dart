@@ -1,4 +1,4 @@
-class TransactionEntity {
+class FinancialTransactionEntity {
   final String id;
   final String accountId;     // A qué cuenta impacta
   final double amount;        // Monto de la transacción
@@ -6,7 +6,7 @@ class TransactionEntity {
   final String concept;       // Ej: "Distribución orden #1025"
   final DateTime date;
 
-  const TransactionEntity({
+  const FinancialTransactionEntity({
     required this.id,
     required this.accountId,
     required this.amount,

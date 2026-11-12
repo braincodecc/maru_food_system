@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:maru_food_system/features/order/domain/entities/order_item_entity.dart';
 import '../../domain/entities/order_entity.dart';
 import '../../domain/entities/order_status.enum.dart';
 import '../../domain/usecases/create_order_reservation_usecase.dart';
@@ -34,7 +35,7 @@ class OrderProvider extends ChangeNotifier {
   /// Reserva el stock y crea el pedido en estado awaitingPayment
   Future<String?> createOrderReservation({
     required String clientId,
-    required Map<String, int> items,
+    required List<OrderItemEntity> items,
     required double totalAmount,
   }) async {
     _isLoading = true;

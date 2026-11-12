@@ -102,6 +102,12 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
       case OrderStatus.delivered:
         statusColor = Colors.purple;
         break;
+      case OrderStatus.completed:
+        statusColor = Colors.teal;
+        break;
+        case OrderStatus.inPreparation:
+        statusColor = Colors.amber;
+        break;
     }
 
     return Card(
@@ -184,9 +190,9 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
             ),
             const SizedBox(height: 4),
-            ...order.items.entries.map(
-              (entry) => Text(
-                '• Producto ID: ${entry.key} (Cant: ${entry.value})',
+            ...order.items.map(
+              (item) => Text(
+                '• ${item.productName} (Cant: ${item.quantity})',
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ),
@@ -256,37 +262,41 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                   const SizedBox(width: 12),
 
                   ElevatedButton.icon(
-                    onPressed: order.status == OrderStatus.pendingVerification ? () async {
-                      final messenger = ScaffoldMessenger.maybeOf(context);
-                      final success = await provider.changeOrderStatus(
-                        order.id,
-                        OrderStatus.approved,
-                      );
+                    onPressed: order.status == OrderStatus.pendingVerification
+                        ? () async {
+                            final messenger = ScaffoldMessenger.maybeOf(
+                              context,
+                            );
+                            final success = await provider.changeOrderStatus(
+                              order.id,
+                              OrderStatus.approved,
+                            );
 
-                      if (!mounted || messenger == null) return;
+                            if (!mounted || messenger == null) return;
 
-                      if (success) {
-                        await provider.loadAllOrders();
-                        messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              '¡Pago aprobado con éxito! Pedido pasado a preparación.',
-                            ),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      } else {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              provider.errorMessage ??
-                                  'Error al aprobar el pedido.',
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    } : null,
+                            if (success) {
+                              await provider.loadAllOrders();
+                              messenger.showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    '¡Pago aprobado con éxito! Pedido pasado a preparación.',
+                                  ),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            } else {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    provider.errorMessage ??
+                                        'Error al aprobar el pedido.',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        : null,
                     icon: const Icon(Icons.check, color: Colors.white),
                     label: const Text('Aprobar Pago'),
                     style: ElevatedButton.styleFrom(

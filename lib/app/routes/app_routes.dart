@@ -5,6 +5,7 @@ import '../../features/identity/identity.dart';
 import '../../features/product/product.dart';
 import '../../features/ingredient/ingredient.dart';
 import '../../features/order/order.dart';
+import '../../features/finance/finance.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -16,6 +17,7 @@ class AppRoutes {
   static const String clientOrders = '/client/orders';
   static const String activeClientOrder = '/client/orders/active';
   static const String adminOrders = '/admin/orders';
+  static const String adminFinance = '/admin/finance';
   static const String kitchen = '/kitchen';
 
   /// Mapa global de rutas de la aplicación
@@ -61,6 +63,12 @@ class AppRoutes {
       activeClientOrder: (context) => RoleGuard(
         allowedRoles: const [UserRole.cliente],
         child: const ClientActiveOrderScreen(),
+      ),
+
+      // 9. Gestión Financiera (Protegido para Admin)
+      adminFinance: (context) => RoleGuard(
+        allowedRoles: const [UserRole.admin],
+        child: const FinanceDashboardScreen(),
       ),
 
       // Ruta protegida para Cocineros y Administradores (Módulo Cocina/KDS)

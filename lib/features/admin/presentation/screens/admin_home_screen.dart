@@ -129,6 +129,31 @@ class AdminHomeScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              SizedBox(height: 8),
+
+              // Cuarto boton para acceder a la gestión de finanzas
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(context, AppRoutes.adminFinance);
+                },
+                icon: const Icon(Icons.receipt_long),
+                label: const Text('Gestionar Finanzas'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green, // O el color de tu preferencia
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 14,
+                  ),
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
