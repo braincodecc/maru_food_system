@@ -46,7 +46,7 @@ class OrderModel extends OrderEntity {
       id: id,
       clientId: json['clientId'] ?? '',
       totalAmount: (json['totalAmount'] ?? 0.0).toDouble(),
-      status: _parseStatus(json['status']),
+      status: OrderStatus.fromString(json['status'] as String),
       paymentReference: json['paymentReference'] ?? '',
       clientPhone: json['clientPhone'] ?? '',
       createdAt: (json['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
@@ -105,7 +105,7 @@ class OrderModel extends OrderEntity {
   }
 
   /// Convierte un String a OrderStatus enum
-  static OrderStatus _parseStatus(String? statusStr) {
+  /*static OrderStatus _parseStatus(String? statusStr) {
     switch (statusStr) {
       case 'approved':
         return OrderStatus.approved;
@@ -117,5 +117,5 @@ class OrderModel extends OrderEntity {
       default:
         return OrderStatus.pendingVerification;
     }
-  }
+  }*/
 }

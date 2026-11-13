@@ -1,11 +1,25 @@
 enum OrderStatus {
-  awaitingPayment,     // Stock reservado, esperando que el cliente pague y mande referencia
-  pendingVerification, // Esperando que el admin verifique el Pago Móvil
-  approved,            // Pago aprobado, stock descontado definitivamente, pasa a cocina
-  rejected,            // Pago falso o no encontrado, stock devuelto al almacén
-  delivered,           // Pedido entregado al cliente
-  completed,           // Pedido finalizado, ingresos distribuidos a cuentas virtuales
-  inPreparation,        // Pedido en preparación, stock descontado definitivamente, pasa a cocina
+  awaitingPayment('awaitingPayment'),         // Stock reservado, esperando pago del cliente
+  pendingVerification('pendingVerification'), // Cliente envió referencia, esperando verificación del admin
+  approved('approved'),                       // Pago aprobado por el admin, listo para cocina
+  inPreparation('inPreparation'),             // Cocinero tomó la orden y la está preparando
+  ready('ready'),                             // Pedido listo (Pickup: espera al cliente; Delivery: espera repartidor)
+  outForDelivery('outForDelivery'),           // Pedido en camino con el repartidor
+  delivered('delivered'),                     // Pedido entregado al cliente / retirado con éxito
+  completed('completed'),                     // Finalizado, ingresos distribuidos automáticamente a cuentas virtuales
+  rejected('rejected');                       // Pago inválido o rechazado, stock devuelto al almacén
+
+  // Valor que normalmente viene del backend (String)
+  final String value;
+  const OrderStatus(this.value);
+
+  // Método utilitario para convertir String a Enum de forma segura
+  static OrderStatus fromString(String status) {
+    return OrderStatus.values.firstWhere(
+      (e) => e.value.toUpperCase() == status.toUpperCase(),
+      orElse: () => OrderStatus.awaitingPayment, // Estado por defecto
+    );
+  }
 }
 
 extension OrderStatusExtension on OrderStatus {
@@ -16,15 +30,19 @@ extension OrderStatusExtension on OrderStatus {
       case OrderStatus.pendingVerification:
         return 'Pendiente de Verificación';
       case OrderStatus.approved:
-        return 'Aprobado / En Preparación';
-      case OrderStatus.rejected:
-        return 'Rechazado';
+        return 'Aprobado';
+      case OrderStatus.inPreparation:
+        return 'En Preparación';
+      case OrderStatus.ready:
+        return 'Listo para Despacho';
+      case OrderStatus.outForDelivery:
+        return 'En Camino (Delivery)';
       case OrderStatus.delivered:
         return 'Entregado';
       case OrderStatus.completed:
         return 'Completado';
-      case OrderStatus.inPreparation:
-        return 'En Preparación';
+      case OrderStatus.rejected:
+        return 'Rechazado';
     }
   }
 }

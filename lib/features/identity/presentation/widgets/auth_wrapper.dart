@@ -8,7 +8,7 @@ import '../screens/splash_screen.dart';
 // Importa las pantallas Home de tus otros módulos:
 import '../../../admin/presentation/screens/admin_home_screen.dart';
 import '../../../client/presentation/screens/client_home_screen.dart';
-import '../../../kitchen/presentation/screens/kitchen_home_screen.dart';
+import '../../../kitchen/presentation/screens/kitchen_orders_screen.dart';
 import '../../../delivery/presentation/screens/delivery_home_screen.dart';
 
 
@@ -38,7 +38,7 @@ class AuthWrapper extends StatelessWidget {
       case UserRole.repartidor:
         return const DeliveryHomeScreen();
       case UserRole.cocinero:
-        return const KitchenHomeScreen();
+        return const KitchenOrdersScreen();
     }
   }
 }

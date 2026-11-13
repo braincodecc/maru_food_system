@@ -13,7 +13,7 @@ class UpdateOrderStatusUseCase {
     await _repository.updateOrderStatus(orderId, newStatus);
 
     // 2. Si la orden se marca como completada, necesitamos los datos detallados para las finanzas
-    if (newStatus == OrderStatus.delivered) {
+    if (newStatus == OrderStatus.completed) {
       final updatedOrder = await _repository.getOrderById(orderId);
 
       if (updatedOrder == null) {

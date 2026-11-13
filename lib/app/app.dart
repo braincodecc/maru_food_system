@@ -9,6 +9,7 @@ import '../features/product/product.dart';
 import '../features/ingredient/ingredient.dart';
 import '../features/order/order.dart';
 import '../features/finance/finance.dart';
+import '../features/kitchen/kitchen.dart';
 
 class MyApp extends StatelessWidget {
   final SharedPreferences sharedPreferences;
@@ -39,8 +40,14 @@ class MyApp extends StatelessWidget {
           create: (_) => createOrderProvider(),
         ),
 
-        ChangeNotifierProvider(
+        // Módulo de Finanzas
+        ChangeNotifierProvider<FinanceProvider>(
           create: (_) => createFinanceProvider(),
+        ),
+
+        // Módulo de Cocina
+        ChangeNotifierProvider<KitchenProvider>(
+          create: (_) => createKitchenProvider(),
         ),
       ],
       child: MaterialApp(

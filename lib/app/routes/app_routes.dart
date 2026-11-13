@@ -6,6 +6,7 @@ import '../../features/product/product.dart';
 import '../../features/ingredient/ingredient.dart';
 import '../../features/order/order.dart';
 import '../../features/finance/finance.dart';
+import '../../features/kitchen/kitchen.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -18,7 +19,7 @@ class AppRoutes {
   static const String activeClientOrder = '/client/orders/active';
   static const String adminOrders = '/admin/orders';
   static const String adminFinance = '/admin/finance';
-  static const String kitchen = '/kitchen';
+  static const String kitchenOrders = '/kitchen/orders';
 
   /// Mapa global de rutas de la aplicación
   static Map<String, WidgetBuilder> getRoutes() {
@@ -72,10 +73,10 @@ class AppRoutes {
       ),
 
       // Ruta protegida para Cocineros y Administradores (Módulo Cocina/KDS)
-      /*kitchen: (context) => RoleGuard(
-            allowedRoles: const [UserRole.cocinero, UserRole.admin],
-            child: const KitchenScreen(),
-          ),*/
+      kitchenOrders: (context) => RoleGuard(
+        allowedRoles: const [UserRole.cocinero, UserRole.admin],
+        child: const KitchenOrdersScreen(),
+      ),
     };
   }
 }

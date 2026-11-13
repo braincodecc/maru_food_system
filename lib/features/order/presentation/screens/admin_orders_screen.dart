@@ -96,6 +96,9 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
       case OrderStatus.approved:
         statusColor = Colors.green;
         break;
+      case OrderStatus.ready:
+        statusColor = Colors.lightGreen;
+        break;
       case OrderStatus.rejected:
         statusColor = Colors.red;
         break;
@@ -105,8 +108,11 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
       case OrderStatus.completed:
         statusColor = Colors.teal;
         break;
-        case OrderStatus.inPreparation:
+      case OrderStatus.inPreparation:
         statusColor = Colors.amber;
+        break;
+      case OrderStatus.outForDelivery:
+        statusColor = Colors.indigo;
         break;
     }
 
@@ -312,10 +318,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                 child: ElevatedButton.icon(
                   onPressed: () => provider.changeOrderStatus(
                     order.id,
-                    OrderStatus.delivered,
+                    OrderStatus.inPreparation,
                   ),
                   icon: const Icon(Icons.local_shipping, color: Colors.white),
-                  label: const Text('Marcar como Entregado'),
+                  label: const Text('Marcar como En Preparación'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.purple,
                     foregroundColor: Colors.white,
