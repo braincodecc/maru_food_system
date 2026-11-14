@@ -3,23 +3,23 @@ import 'package:maru_food_system/features/order/domain/entities/order_item_entit
 import '../../domain/entities/order_entity.dart';
 import '../../domain/entities/order_status.enum.dart';
 import '../../domain/usecases/create_order_reservation_usecase.dart';
-import '../../domain/usecases/submit_payment_reference_usecase.dart';
+import '../../domain/usecases/confirm_order_checkout_usecase.dart';
 import '../../domain/usecases/get_orders_usecase.dart';
 import '../../domain/usecases/update_order_status_usecase.dart';
 
 class OrderProvider extends ChangeNotifier {
   final CreateOrderReservationUsecase _createOrderReservationUsecase;
-  final SubmitPaymentReferenceUsecase _submitPaymentReferenceUsecase;
+  final ConfirmOrderCheckoutUseCase _confirmOrderCheckoutUseCase;
   final GetOrdersUseCase _getOrdersUseCase;
   final UpdateOrderStatusUseCase _updateOrderStatusUseCase;
 
   OrderProvider({
     required CreateOrderReservationUsecase createOrderReservationUsecase,
-    required SubmitPaymentReferenceUsecase submitPaymentReferenceUsecase,
+    required ConfirmOrderCheckoutUseCase confirmOrderCheckoutUseCase,
     required GetOrdersUseCase getOrdersUseCase,
     required UpdateOrderStatusUseCase updateOrderStatusUseCase,
   }) : _createOrderReservationUsecase = createOrderReservationUsecase,
-       _submitPaymentReferenceUsecase = submitPaymentReferenceUsecase,
+       _confirmOrderCheckoutUseCase = confirmOrderCheckoutUseCase,
        _getOrdersUseCase = getOrdersUseCase,
        _updateOrderStatusUseCase = updateOrderStatusUseCase;
 
@@ -35,8 +35,9 @@ class OrderProvider extends ChangeNotifier {
   /// Reserva el stock y crea el pedido en estado awaitingPayment
   Future<String?> createOrderReservation({
     required String clientId,
-    required List<OrderItemEntity> items,
+    required bool isDelivery,
     required double totalAmount,
+    required List<OrderItemEntity> items,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -51,6 +52,7 @@ class OrderProvider extends ChangeNotifier {
         status: OrderStatus.awaitingPayment,
         paymentReference: '',
         clientPhone: '',
+        isDelivery: isDelivery,
         createdAt: DateTime.now(),
       );
 
@@ -65,21 +67,23 @@ class OrderProvider extends ChangeNotifier {
     }
   }
 
-  /// Envía la referencia del pago móvil y pasa a pendingVerification
-  Future<bool> submitPayment({
+  /// Confirmar orden de compra y actualizar el estado a "pendingVerification"
+  Future<bool> confirmOrderPurchase({
     required String orderId,
     required String paymentReference,
     required String clientPhone,
+    required bool isDelivery,
   }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await _submitPaymentReferenceUsecase(
+      await _confirmOrderCheckoutUseCase(
         orderId: orderId,
         paymentReference: paymentReference,
         clientPhone: clientPhone,
+        isDelivery: isDelivery,
       );
       return true;
     } catch (e) {
@@ -128,7 +132,7 @@ class OrderProvider extends ChangeNotifier {
     return _getOrdersUseCase.activeForClient(clientId);
   }
 
-  /// Cambia el estado de un pedido (Aprobar, Rechazar, Entregado)
+  /// Cambia el estado de un pedido (aprovado, Rechazar, etc.) y recarga la lista correspondiente
   Future<bool> changeOrderStatus(
     String orderId,
     OrderStatus newStatus, {

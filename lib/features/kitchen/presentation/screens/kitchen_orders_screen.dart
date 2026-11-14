@@ -1,4 +1,3 @@
-// features/kitchen/presentation/screens/kitchen_orders_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:maru_food_system/features/order/domain/entities/order_entity.dart';

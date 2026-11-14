@@ -3,7 +3,12 @@ import '../entities/order_status.enum.dart';
 
 abstract class OrderRepository {
   Future<String?> createOrderWithStockReservation(OrderEntity order);
-  Future<void> submitOrderPaymentReference(String orderId, String paymentReference, String clientPhone);
+  Future<void> confirmCheckout({
+    required String orderId,
+    required String paymentReference,
+    required String clientPhone,
+    required bool isDelivery,
+  });
   Future<List<OrderEntity>> getOrdersForClient(String clientId);
   Future<List<OrderEntity>> getAllOrders(); // Para el panel del administrador
   Future<OrderEntity?> getOrderById(String orderId); // Obtener detalles de una orden específica

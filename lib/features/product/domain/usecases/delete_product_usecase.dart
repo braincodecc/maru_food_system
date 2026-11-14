@@ -1,11 +1,12 @@
 import '../repositories/product_repository.dart';
 
 class DeleteProductUseCase {
-  final ProductRepository _repository;
+  final ProductRepository _productRepository;
 
-  DeleteProductUseCase(this._repository);
+  DeleteProductUseCase({required ProductRepository productRepository})
+    : _productRepository = productRepository;
 
   Future<void> call(String productId) async {
-    await _repository.deleteProduct(productId);
+    await _productRepository.deleteProduct(productId);
   }
 }

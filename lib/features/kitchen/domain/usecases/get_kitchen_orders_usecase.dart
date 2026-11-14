@@ -1,21 +1,13 @@
 import 'package:maru_food_system/features/order/domain/entities/order_entity.dart';
-import 'package:maru_food_system/features/order/domain/entities/order_status.enum.dart';
-import 'package:maru_food_system/features/order/domain/repositories/order_repository.dart';
+import '../../domain/ports/kitchen_order_port.dart';
 
 class GetKitchenOrdersUseCase {
-  final OrderRepository _orderRepository;
+  final KitchenOrderPort _kitchenOrderPort;
 
-  GetKitchenOrdersUseCase(this._orderRepository);
+  GetKitchenOrdersUseCase({required KitchenOrderPort kitchenOrderPort})
+    : _kitchenOrderPort = kitchenOrderPort;
 
   Future<List<OrderEntity>> call() async {
-    // Obtenemos todas las órdenes del sistema (o un filtro optimizado en repositorio)
-    final allOrders = await _orderRepository.getAllOrders();
-
-    // Filtramos las que competen a cocina: approved, inPreparation y ready
-    return allOrders.where((order) {
-      return order.status == OrderStatus.approved ||
-             order.status == OrderStatus.inPreparation ||
-             order.status == OrderStatus.ready;
-    }).toList();
+    return _kitchenOrderPort.getActiveKitchenOrders();
   }
 }

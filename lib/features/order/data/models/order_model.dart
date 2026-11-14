@@ -11,6 +11,7 @@ class OrderModel extends OrderEntity {
     required super.status,
     required super.paymentReference,
     required super.clientPhone,
+    required super.isDelivery,
     required super.createdAt,
     required super.items,
   });
@@ -49,6 +50,7 @@ class OrderModel extends OrderEntity {
       status: OrderStatus.fromString(json['status'] as String),
       paymentReference: json['paymentReference'] ?? '',
       clientPhone: json['clientPhone'] ?? '',
+      isDelivery: json['isDelivery'] ?? false,
       createdAt: (json['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       items: parsedItems,
           /*(json['items'] as List<dynamic>?)
@@ -69,6 +71,7 @@ class OrderModel extends OrderEntity {
           .name, // Guardamos el nombre del enum como String ('pendingVerification', etc.)
       'paymentReference': paymentReference,
       'clientPhone': clientPhone,
+      'isDelivery': isDelivery,
       'createdAt': Timestamp.fromDate(createdAt),
       'items': items
           .map((item) => OrderItemModel.fromEntity(item).toMap())
@@ -81,12 +84,13 @@ class OrderModel extends OrderEntity {
     return OrderModel(
       id: entity.id,
       clientId: entity.clientId,
-      items: entity.items,
       totalAmount: entity.totalAmount,
       status: entity.status,
       paymentReference: entity.paymentReference,
       clientPhone: entity.clientPhone,
+      isDelivery: entity.isDelivery,
       createdAt: entity.createdAt,
+      items: entity.items,
     );
   }
 
@@ -99,6 +103,7 @@ class OrderModel extends OrderEntity {
       totalAmount: totalAmount,
       status: status,
       paymentReference: paymentReference,
+      isDelivery: isDelivery,
       clientPhone: clientPhone,
       createdAt: createdAt,
     );

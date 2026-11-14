@@ -1,13 +1,18 @@
+// Importaciones del modulo de producto
 import '../entities/product_entity.dart';
 import '../entities/product_type.enum.dart';
 import '../repositories/product_repository.dart';
-import '../services/product_ingredient_service.dart';
+import '../ports/product_ingredient_port.dart';
 
 class SaveProductUseCase {
-  final ProductRepository _repository;
-  final ProductIngredientService _ingredientService;
+  final ProductRepository _productRepository;
+  final ProductIngredientPort _productIngredientPort;
 
-  SaveProductUseCase(this._repository, this._ingredientService);
+  SaveProductUseCase({
+    required ProductRepository productRepository,
+    required ProductIngredientPort productIngredientPort,
+  }) : _productRepository = productRepository,
+       _productIngredientPort = productIngredientPort;
 
   Future<void> call(ProductEntity product) async {
     double totalProductionCost = 0.0;
@@ -15,7 +20,7 @@ class SaveProductUseCase {
     if (product.type == ProductType.fabricado && product.recipe.isNotEmpty) {
       for (var item in product.recipe) {
         // Pedimos el costo usando el contrato abstracto
-        final unitCost = await _ingredientService.getIngredientUnitCost(
+        final unitCost = await _productIngredientPort.getIngredientUnitCost(
           item.ingredientId,
         );
 
@@ -38,9 +43,9 @@ class SaveProductUseCase {
 
     // Si el ID está vacío, es un producto nuevo; de lo contrario, se actualiza
     if (product.id.isEmpty) {
-      await _repository.createProduct(product);
+      await _productRepository.createProduct(product);
     } else {
-      await _repository.updateProduct(product);
+      await _productRepository.updateProduct(product);
     }
   }
 }

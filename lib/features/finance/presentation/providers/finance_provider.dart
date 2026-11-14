@@ -2,18 +2,14 @@ import 'package:flutter/foundation.dart';
 import '../../domain/entities/financial_account_entity.dart';
 import '../../domain/entities/financial_transaction_entity.dart';
 import '../../domain/repositories/finance_repository.dart';
-import '../../domain/usecases/distribute_order_revenue_usecase.dart';
 
 class FinanceProvider extends ChangeNotifier {
   // Repositorio temporalmente, pendiente creación de los casos de uso de cuentas y transacciones para el módulo de Finanzas (no deberia manejar repositorios) 
   final FinanceRepository _financeRepository;
-  final DistributeOrderRevenueUseCase _distributeOrderRevenueUseCase;
 
   FinanceProvider({
     required FinanceRepository financeRepository,
-    required DistributeOrderRevenueUseCase distributeOrderRevenueUseCase,
-  })  : _financeRepository = financeRepository,
-        _distributeOrderRevenueUseCase = distributeOrderRevenueUseCase;
+  })  : _financeRepository = financeRepository;
 
   List<FinancialAccountEntity> _accounts = [];
   List<FinancialTransactionEntity> _transactions = [];

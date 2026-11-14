@@ -299,8 +299,9 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
     /// 3. Ejecutar reserva atómica en Firestore pasando la lista de entidades
     final orderId = await orderProvider.createOrderReservation(
       clientId: clientId,
-      items: orderItems,
+      isDelivery: false,
       totalAmount: totalAmount,
+      items: orderItems,
     );
 
     // Ocultar diálogo de carga
@@ -317,7 +318,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
             orderId: orderId,
             items: orderItems,
             totalAmount: totalAmount,
-            availableProducts: productProvider.activeProducts,
+            //availableProducts: productProvider.activeProducts,
           ),
         ),
       );

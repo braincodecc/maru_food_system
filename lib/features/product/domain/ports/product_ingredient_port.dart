@@ -1,3 +1,3 @@
-abstract class ProductIngredientService {
+abstract class ProductIngredientPort {
   Future<double?> getIngredientUnitCost(String ingredientId);
 }

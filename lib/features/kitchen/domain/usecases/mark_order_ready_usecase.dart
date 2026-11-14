@@ -1,13 +1,12 @@
-import 'package:maru_food_system/features/order/domain/entities/order_status.enum.dart';
-import 'package:maru_food_system/features/order/domain/repositories/order_repository.dart';
+import '../../domain/ports/kitchen_order_port.dart';
 
 class MarkOrderReadyUseCase {
-  final OrderRepository _orderRepository;
+  final KitchenOrderPort _kitchenOrderPort;
 
-  MarkOrderReadyUseCase(this._orderRepository);
+  MarkOrderReadyUseCase({required KitchenOrderPort kitchenOrderPort})
+    : _kitchenOrderPort = kitchenOrderPort;
 
   Future<void> call(String orderId) async {
-    // Cambia el estado a 'ready' (Listo en cocina)
-    await _orderRepository.updateOrderStatus(orderId, OrderStatus.ready);
+    await _kitchenOrderPort.updateOrderStatusToReady(orderId);
   }
 }

@@ -5,11 +5,12 @@ import '../../../../app/errors/firebase_safe_call.extension.dart';
 
 abstract class OrderRemoteDataSource {
   Future<String?> createOrderWithStockReservation(OrderModel order);
-  Future<void> submitOrderPaymentReference(
-    String orderId,
-    String paymentReference,
-    String clientPhone,
-  );
+  Future<void> updateOrderData({
+    required String orderId,
+    required String paymentReference,
+    required String clientPhone,
+    required bool isDelivery,
+  });
   Future<List<OrderModel>> getOrdersForClient(String clientId);
   Future<List<OrderModel>> getAllOrders();
   Future<OrderModel?> getOrderById(String orderId);
@@ -145,15 +146,17 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
   }
 
   @override
-  Future<void> submitOrderPaymentReference(
-    String orderId,
-    String paymentReference,
-    String clientPhone,
-  ) async {
+  Future<void> updateOrderData({
+    required String orderId,
+    required String paymentReference,
+    required String clientPhone,
+    required bool isDelivery,
+  }) async {
     await _firestore.collection('orders').doc(orderId).update(
       {
         'paymentReference': paymentReference,
         'clientPhone': clientPhone,
+        'isDelivery': isDelivery,
         'status': OrderStatus.pendingVerification.name,
       },
     ); //.guard(); // Usamos la extensión para manejar errores de Firebase de manera limpia

@@ -1,15 +1,19 @@
-import '../../domain/services/product_ingredient_service.dart';
+import '../../domain/ports/product_ingredient_port.dart';
 import 'package:maru_food_system/features/ingredient/domain/repositories/ingredient_repository.dart';
 
-class ProductIngredientAdapterImpl implements ProductIngredientService {
-  final IngredientRepository _ingredientRepository; // El repositorio real del otro módulo
+class ProductIngredientAdapterImpl implements ProductIngredientPort {
+  final IngredientRepository
+  _ingredientRepository;
 
-  ProductIngredientAdapterImpl(this._ingredientRepository);
+  ProductIngredientAdapterImpl({
+    required IngredientRepository ingredientRepository,
+  }) : _ingredientRepository = ingredientRepository;
 
   @override
   Future<double?> getIngredientUnitCost(String ingredientId) async {
-    // Consultamos el repositorio de ingredientes y adaptamos el resultado a lo que el producto necesita
-    final ingredient = await _ingredientRepository.getIngredientById(ingredientId);
+    final ingredient = await _ingredientRepository.getIngredientById(
+      ingredientId,
+    );
     return ingredient?.unitCost;
   }
 }

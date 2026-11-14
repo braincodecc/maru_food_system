@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../order.dart';
-import '../../../product/product.dart';
+//import '../../../product/product.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final String orderId;
   final List<OrderItemEntity> items;
   final double totalAmount;
-  final List<ProductEntity> availableProducts;
+  //final List<ProductEntity> availableProducts;
 
   const CheckoutScreen({
     super.key,
     required this.orderId,
     required this.items,
     required this.totalAmount,
-    required this.availableProducts,
+    //required this.availableProducts,
   });
 
   @override
@@ -25,6 +25,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _referenceController = TextEditingController();
+
+  bool _isDelivery = true;
 
   @override
   void dispose() {
@@ -128,6 +130,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
               const SizedBox(height: 20),
 
+              Card(
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  side: BorderSide(color: Colors.deepOrange.shade200),
+                ),
+                child: SwitchListTile(
+                  title: Text(
+                    _isDelivery
+                        ? 'Envío a Domicilio (Delivery)'
+                        : 'Retiro en Local (Pickup)',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    _isDelivery
+                        ? 'Tu pedido será llevado en la moto de Maru Food.'
+                        : 'Pasarás a retirar tu pedido directamente por el local.',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  secondary: Icon(
+                    _isDelivery ? Icons.delivery_dining : Icons.storefront,
+                    color: Colors.deepOrange,
+                    size: 30,
+                  ),
+                  value: _isDelivery,
+                  activeThumbColor: Colors.deepOrange,
+                  onChanged: (bool value) {
+                    setState(() {
+                      _isDelivery = value;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+
               // Datos Bancarios de Pago Móvil
               const Text(
                 'Datos para el Pago Móvil:',
@@ -187,10 +224,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     : () async {
                         if (!_formKey.currentState!.validate()) return;
 
-                        final success = await orderProvider.submitPayment(
+                        final success = await orderProvider.confirmOrderPurchase(
                           orderId: widget.orderId,
                           paymentReference: _referenceController.text.trim(),
                           clientPhone: _phoneController.text.trim(),
+                          isDelivery: _isDelivery,
                         );
 
                         if (!mounted) return;

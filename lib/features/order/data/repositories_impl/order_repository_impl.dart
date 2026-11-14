@@ -17,15 +17,17 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Future<void> submitOrderPaymentReference(
-    String orderId,
-    String paymentReference,
-    String clientPhone,
-  ) async {
-    await _remoteDataSource.submitOrderPaymentReference(
-      orderId,
-      paymentReference,
-      clientPhone,
+  Future<void> confirmCheckout({
+    required String orderId,
+    required String paymentReference,
+    required String clientPhone,
+    required bool isDelivery,
+  }) async {
+    await _remoteDataSource.updateOrderData(
+      orderId: orderId,
+      paymentReference: paymentReference,
+      clientPhone: clientPhone,
+      isDelivery: isDelivery,
     );
   }
 
