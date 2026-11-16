@@ -10,6 +10,7 @@ import '../features/ingredient/ingredient.dart';
 import '../features/order/order.dart';
 import '../features/finance/finance.dart';
 import '../features/kitchen/kitchen.dart';
+import '../features/delivery/delivery.dart';
 
 class MyApp extends StatelessWidget {
   final SharedPreferences sharedPreferences;
@@ -48,6 +49,11 @@ class MyApp extends StatelessWidget {
         // Módulo de Cocina
         ChangeNotifierProvider<KitchenProvider>(
           create: (_) => createKitchenProvider(),
+        ),
+        
+        // Módulo de Delivery
+        ChangeNotifierProvider<DeliveryProvider>(
+          create: (_) => createDeliveryProvider(),
         ),
       ],
       child: MaterialApp(

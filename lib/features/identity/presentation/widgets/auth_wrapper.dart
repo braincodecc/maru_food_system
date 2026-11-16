@@ -9,7 +9,7 @@ import '../screens/splash_screen.dart';
 import '../../../admin/presentation/screens/admin_home_screen.dart';
 import '../../../client/presentation/screens/client_home_screen.dart';
 import '../../../kitchen/presentation/screens/kitchen_orders_screen.dart';
-import '../../../delivery/presentation/screens/delivery_home_screen.dart';
+import '../../../delivery/presentation/screens/delivery_orders_screen.dart';
 
 
 class AuthWrapper extends StatelessWidget {
@@ -35,10 +35,10 @@ class AuthWrapper extends StatelessWidget {
         return const AdminHomeScreen(); // O la pantalla que corresponda
       case UserRole.cliente:
         return const ClientHomeScreen();
-      case UserRole.repartidor:
-        return const DeliveryHomeScreen();
       case UserRole.cocinero:
         return const KitchenOrdersScreen();
+      case UserRole.repartidor:
+        return const DeliveryOrdersScreen();
     }
   }
 }

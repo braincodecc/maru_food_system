@@ -7,6 +7,7 @@ import '../../features/ingredient/ingredient.dart';
 import '../../features/order/order.dart';
 import '../../features/finance/finance.dart';
 import '../../features/kitchen/kitchen.dart';
+import '../../features/delivery/delivery.dart';
 
 class AppRoutes {
   static const String initial = '/';
@@ -20,6 +21,7 @@ class AppRoutes {
   static const String adminOrders = '/admin/orders';
   static const String adminFinance = '/admin/finance';
   static const String kitchenOrders = '/kitchen/orders';
+  static const String deliveryOrders = '/delivery/orders';
 
   /// Mapa global de rutas de la aplicación
   static Map<String, WidgetBuilder> getRoutes() {
@@ -76,6 +78,12 @@ class AppRoutes {
       kitchenOrders: (context) => RoleGuard(
         allowedRoles: const [UserRole.cocinero, UserRole.admin],
         child: const KitchenOrdersScreen(),
+      ),
+
+      // Ruta protegida para Repartidores y Administradores (Módulo Delivery)
+      deliveryOrders: (context) => RoleGuard(
+        allowedRoles: const [UserRole.repartidor, UserRole.admin],
+        child: const DeliveryOrdersScreen(),
       ),
     };
   }

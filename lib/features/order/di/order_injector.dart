@@ -12,6 +12,8 @@ import '../presentation/providers/order_provider.dart';
 import 'package:maru_food_system/features/finance/data/datasources/finance_remote_datasource.dart';
 import 'package:maru_food_system/features/finance/data/repositories_impl/finance_repository_impl.dart';
 
+
+/// 1. Fábrica para crear el OrderProvider local
 OrderProvider createOrderProvider() {
   // 1. Data Source y Repositorio de Órdenes
   final orderRemoteDataSource = OrderRemoteDataSourceImpl();
@@ -52,5 +54,21 @@ OrderProvider createOrderProvider() {
     confirmOrderCheckoutUseCase: confirmOrderCheckoutUseCase,
     getOrdersUseCase: getOrdersUseCase,
     updateOrderStatusUseCase: updateOrderStatusUseCase,
+  );
+}
+
+/// 2. Fábrica pura para entregar el caso de uso a otros módulos (como Delivery o Kitchen)
+UpdateOrderStatusUseCase createUpdateOrderStatusUseCase() {
+  final orderRemoteDataSource = OrderRemoteDataSourceImpl();
+  final orderRepository = OrderRepositoryImpl(remoteDataSource: orderRemoteDataSource);
+
+  // El módulo Order conecta su fin de ciclo con Finanzas de forma interna
+  final financeRemoteDataSource = FinanceRemoteDataSourceImpl();
+  final financeRepository = FinanceRepositoryImpl(remoteDataSource: financeRemoteDataSource);
+  final orderFinanceAdapter = OrderFinanceAdapterImpl(financeRepository: financeRepository);
+
+  return UpdateOrderStatusUseCase(
+    orderRepository: orderRepository,
+    orderFinancePort: orderFinanceAdapter,
   );
 }
