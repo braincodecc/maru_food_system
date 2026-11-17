@@ -40,7 +40,7 @@ class KitchenProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> startPreparation(String orderId) async {
+  Future<bool> markAsOrderInPreparation(String orderId) async {
     try {
       await _markOrderPreparationUseCase(orderId);
       await loadKitchenOrders(); // Refrescamos lista
@@ -52,7 +52,7 @@ class KitchenProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> markAsReady(String orderId) async {
+  Future<bool> markAsOrderReady(String orderId) async {
     try {
       await _markOrderReadyUseCase(orderId);
       await loadKitchenOrders(); // Refrescamos lista

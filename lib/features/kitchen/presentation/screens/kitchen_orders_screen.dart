@@ -150,7 +150,7 @@ class _KitchenOrdersScreenState extends State<KitchenOrdersScreen> {
               children: [
                 if (isApproved)
                   ElevatedButton.icon(
-                    onPressed: () => provider.startPreparation(order.id),
+                    onPressed: () => provider.markAsOrderInPreparation(order.id),
                     icon: const Icon(Icons.local_fire_department),
                     label: const Text('Iniciar Preparación'),
                     style: ElevatedButton.styleFrom(
@@ -160,7 +160,7 @@ class _KitchenOrdersScreenState extends State<KitchenOrdersScreen> {
                   ),
                 if (isInPrep)
                   ElevatedButton.icon(
-                    onPressed: () => provider.markAsReady(order.id),
+                    onPressed: () => provider.markAsOrderReady(order.id),
                     icon: const Icon(Icons.check_circle),
                     label: const Text('Marcar como Listo'),
                     style: ElevatedButton.styleFrom(
