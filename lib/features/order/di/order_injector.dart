@@ -16,9 +16,8 @@ import '../domain/usecases/update_order_operational_status_usecase.dart';
 // Provider local de órdenes
 import '../presentation/providers/order_provider.dart';
 
-// Importaciones del módulo de finanzas
-import 'package:maru_food_system/features/finance/data/datasources/finance_remote_datasource.dart';
-import 'package:maru_food_system/features/finance/data/repositories_impl/finance_repository_impl.dart';
+// Importamos las fábricas públicas del módulo de finanzas
+import 'package:maru_food_system/features/finance/di/finance_injector.dart';
 
 /// 1. Fábrica para el Provider local de Órdenes
 OrderProvider createOrderProvider() {
@@ -56,13 +55,10 @@ UpdateOrderStatusUseCase createUpdateOrderStatusUseCase() {
     remoteDataSource: orderRemoteDataSource,
   );
 
-  // Dependencias de finanzas necesarias exclusivamente para este caso de uso
-  final financeRemoteDataSource = FinanceRemoteDataSourceImpl();
-  final financeRepository = FinanceRepositoryImpl(
-    remoteDataSource: financeRemoteDataSource,
-  );
+  // 💡 Inyectamos el caso de uso de Finanzas en el caso de uso de Órdenes
+  final distributeOrderRevenueUseCase = createDistributeOrderRevenueUseCase();
   final orderFinanceAdapter = OrderFinanceAdapterImpl(
-    financeRepository: financeRepository,
+    distributeOrderRevenueUseCase: distributeOrderRevenueUseCase,
   );
 
   return UpdateOrderStatusUseCase(
