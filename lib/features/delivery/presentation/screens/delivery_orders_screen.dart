@@ -18,7 +18,7 @@ class _DeliveryOrdersScreenState extends State<DeliveryOrdersScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DeliveryProvider>().loadDeliveries();
+      context.read<DeliveryProvider>().loadDeliveryOrders();
     });
   }
 
@@ -34,7 +34,7 @@ class _DeliveryOrdersScreenState extends State<DeliveryOrdersScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () => deliveryProvider.loadDeliveries(),
+            onPressed: () => deliveryProvider.loadDeliveryOrders(),
           ),
         ],
       ),
@@ -48,7 +48,7 @@ class _DeliveryOrdersScreenState extends State<DeliveryOrdersScreen> {
                   ),
                 )
               : RefreshIndicator(
-                  onRefresh: () => deliveryProvider.loadDeliveries(),
+                  onRefresh: () => deliveryProvider.loadDeliveryOrders(),
                   child: ListView.builder(
                     padding: const EdgeInsets.all(12),
                     itemCount: deliveryProvider.deliveries.length,
@@ -111,7 +111,7 @@ class _DeliveryOrdersScreenState extends State<DeliveryOrdersScreen> {
               children: [
                 if (isReady)
                   ElevatedButton.icon(
-                    onPressed: () => provider.startTrip(order.id),
+                    onPressed: () => provider.markAsOrderOutForDelivery(order.id),
                     icon: const Icon(Icons.delivery_dining),
                     label: const Text('Salir a Repartir'),
                     style: ElevatedButton.styleFrom(
@@ -121,7 +121,7 @@ class _DeliveryOrdersScreenState extends State<DeliveryOrdersScreen> {
                   ),
                 if (isOut)
                   ElevatedButton.icon(
-                    onPressed: () => provider.finishDelivery(order.id),
+                    onPressed: () => provider.markAsOrderCompleted(order.id),
                     icon: const Icon(Icons.check_circle_outline),
                     label: const Text('Confirmar Entrega'),
                     style: ElevatedButton.styleFrom(

@@ -1,12 +1,12 @@
 import '../ports/delivery_order_port.dart';
 
-class StartDeliveryUseCase {
+class MarkOrderCompleteUsecase {
   final DeliveryOrderPort _deliveryOrderPort;
 
-  StartDeliveryUseCase({required DeliveryOrderPort deliveryOrderPort})
+  MarkOrderCompleteUsecase({required DeliveryOrderPort deliveryOrderPort})
       : _deliveryOrderPort = deliveryOrderPort;
 
   Future<void> call(String orderId) async {
-    await _deliveryOrderPort.startDelivery(orderId);
+    await _deliveryOrderPort.markOrderStatusToCompleted(orderId);
   }
 }

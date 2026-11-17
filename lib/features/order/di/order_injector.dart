@@ -11,6 +11,7 @@ import '../domain/usecases/get_orders_usecase.dart';
 // Caso de uso compartido (lo usan otros módulos como Delivery)
 import '../domain/usecases/update_order_status_usecase.dart';
 import '../domain/usecases/get_kitchen_orders_usecase.dart';
+import '../domain/usecases/get_delivery_orders_usecase.dart';
 import '../domain/usecases/update_order_operational_status_usecase.dart';
 
 // Provider local de órdenes
@@ -77,8 +78,19 @@ GetKitchenOrdersUseCase createGetKitchenOrdersUseCase() {
   return GetKitchenOrdersUseCase(orderRepository: orderRepository);
 }
 
-/// 4. 💡 Fábrica pública para que el módulo Kitchen actualice estados operativos (Sin Finanzas)
-UpdateOrderOperationalStatusUseCase createUpdateOrderOperationalStatusUseCase() {
+/// 4. 💡 Fábrica pública para que el módulo delivery obtenga las órdenes del repartidor
+GetDeliveryOrdersUseCase createGetDeliveryOrdersUseCase() {
+  final orderRemoteDataSource = OrderRemoteDataSourceImpl();
+  final orderRepository = OrderRepositoryImpl(
+    remoteDataSource: orderRemoteDataSource,
+  );
+
+  return GetDeliveryOrdersUseCase(orderRepository: orderRepository);
+}
+
+/// 5. 💡 Fábrica pública para que el módulo Kitchen actualice estados operativos (Sin Finanzas)
+UpdateOrderOperationalStatusUseCase
+createUpdateOrderOperationalStatusUseCase() {
   final orderRemoteDataSource = OrderRemoteDataSourceImpl();
   final orderRepository = OrderRepositoryImpl(
     remoteDataSource: orderRemoteDataSource,

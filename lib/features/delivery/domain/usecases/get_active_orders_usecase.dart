@@ -1,13 +1,13 @@
 import 'package:maru_food_system/features/order/domain/entities/order_entity.dart';
 import '../ports/delivery_order_port.dart';
 
-class GetDeliveryOrdersUseCase {
+class GetActiveOrdersUseCase {
   final DeliveryOrderPort _deliveryOrderPort;
 
-  GetDeliveryOrdersUseCase({required DeliveryOrderPort deliveryOrderPort})
+  GetActiveOrdersUseCase({required DeliveryOrderPort deliveryOrderPort})
       : _deliveryOrderPort = deliveryOrderPort;
 
   Future<List<OrderEntity>> call() async {
-    return _deliveryOrderPort.getActiveDeliveries();
+    return _deliveryOrderPort.getActiveDeliveryOrders();
   }
 }
