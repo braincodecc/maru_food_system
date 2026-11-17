@@ -7,6 +7,6 @@ class MarkOrderReadyUseCase {
     : _kitchenOrderPort = kitchenOrderPort;
 
   Future<void> call(String orderId) async {
-    await _kitchenOrderPort.updateOrderStatusToReady(orderId);
+    await _kitchenOrderPort.markOrderStatusToReady(orderId);
   }
 }

@@ -1,20 +1,20 @@
 import 'package:flutter/foundation.dart';
 import 'package:maru_food_system/features/order/domain/entities/order_entity.dart';
-import '../../domain/usecases/get_kitchen_orders_usecase.dart';
-import '../../domain/usecases/update_to_preparation_usecase.dart';
+import '../../domain/usecases/get_active_orders_usecase.dart';
+import '../../domain/usecases/mark_order_preparation_usecase.dart';
 import '../../domain/usecases/mark_order_ready_usecase.dart';
 
 class KitchenProvider extends ChangeNotifier {
-  final GetKitchenOrdersUseCase _getKitchenOrdersUseCase;
-  final UpdateToPreparationUseCase _updateToPreparationUseCase;
+  final GetActiveOrdersUseCase _getActiveOrdersUseCase;
+  final MarkOrderPreparationUseCase _markOrderPreparationUseCase;
   final MarkOrderReadyUseCase _markOrderReadyUseCase;
 
   KitchenProvider({
-    required GetKitchenOrdersUseCase getKitchenOrdersUseCase,
-    required UpdateToPreparationUseCase updateToPreparationUseCase,
+    required GetActiveOrdersUseCase getActiveOrdersUseCase,
+    required MarkOrderPreparationUseCase markOrderPreparationUseCase,
     required MarkOrderReadyUseCase markOrderReadyUseCase,
-  })  : _getKitchenOrdersUseCase = getKitchenOrdersUseCase,
-        _updateToPreparationUseCase = updateToPreparationUseCase,
+  })  : _getActiveOrdersUseCase = getActiveOrdersUseCase,
+        _markOrderPreparationUseCase = markOrderPreparationUseCase,
         _markOrderReadyUseCase = markOrderReadyUseCase;
 
   List<OrderEntity> _orders = [];
@@ -31,7 +31,7 @@ class KitchenProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _orders = await _getKitchenOrdersUseCase();
+      _orders = await _getActiveOrdersUseCase();
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
     } finally {
@@ -42,7 +42,7 @@ class KitchenProvider extends ChangeNotifier {
 
   Future<bool> startPreparation(String orderId) async {
     try {
-      await _updateToPreparationUseCase(orderId);
+      await _markOrderPreparationUseCase(orderId);
       await loadKitchenOrders(); // Refrescamos lista
       return true;
     } catch (e) {

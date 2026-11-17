@@ -10,6 +10,8 @@ import '../domain/usecases/get_orders_usecase.dart';
 
 // Caso de uso compartido (lo usan otros módulos como Delivery)
 import '../domain/usecases/update_order_status_usecase.dart';
+import '../domain/usecases/get_kitchen_orders_usecase.dart';
+import '../domain/usecases/update_order_operational_status_usecase.dart';
 
 // Provider local de órdenes
 import '../presentation/providers/order_provider.dart';
@@ -22,11 +24,17 @@ import 'package:maru_food_system/features/finance/data/repositories_impl/finance
 OrderProvider createOrderProvider() {
   // Bases de datos y repositorios base del módulo
   final orderRemoteDataSource = OrderRemoteDataSourceImpl();
-  final orderRepository = OrderRepositoryImpl(remoteDataSource: orderRemoteDataSource);
+  final orderRepository = OrderRepositoryImpl(
+    remoteDataSource: orderRemoteDataSource,
+  );
 
   // Instanciamos directamente los casos de uso locales que NADIE MÁS fuera de order usa
-  final createOrderReservationUsecase = CreateOrderReservationUsecase(orderRepository);
-  final confirmOrderCheckoutUseCase = ConfirmOrderCheckoutUseCase(orderRepository);
+  final createOrderReservationUsecase = CreateOrderReservationUsecase(
+    orderRepository,
+  );
+  final confirmOrderCheckoutUseCase = ConfirmOrderCheckoutUseCase(
+    orderRepository,
+  );
   final getOrdersUseCase = GetOrdersUseCase(orderRepository);
 
   // Para el caso de uso que compartimos, reutilizamos la misma función fábrica pública
@@ -36,22 +44,49 @@ OrderProvider createOrderProvider() {
     createOrderReservationUsecase: createOrderReservationUsecase,
     confirmOrderCheckoutUseCase: confirmOrderCheckoutUseCase,
     getOrdersUseCase: getOrdersUseCase,
-    updateOrderStatusUseCase: updateOrderStatusUseCase, // 💡 Inyectado limpiamente aquí también
+    updateOrderStatusUseCase:
+        updateOrderStatusUseCase, // 💡 Inyectado limpiamente aquí también
   );
 }
 
 /// 2. Fábrica pública y compartida (Expuesta para que Delivery, Kitchen o Admin la usen)
 UpdateOrderStatusUseCase createUpdateOrderStatusUseCase() {
   final orderRemoteDataSource = OrderRemoteDataSourceImpl();
-  final orderRepository = OrderRepositoryImpl(remoteDataSource: orderRemoteDataSource);
+  final orderRepository = OrderRepositoryImpl(
+    remoteDataSource: orderRemoteDataSource,
+  );
 
   // Dependencias de finanzas necesarias exclusivamente para este caso de uso
   final financeRemoteDataSource = FinanceRemoteDataSourceImpl();
-  final financeRepository = FinanceRepositoryImpl(remoteDataSource: financeRemoteDataSource);
-  final orderFinanceAdapter = OrderFinanceAdapterImpl(financeRepository: financeRepository);
+  final financeRepository = FinanceRepositoryImpl(
+    remoteDataSource: financeRemoteDataSource,
+  );
+  final orderFinanceAdapter = OrderFinanceAdapterImpl(
+    financeRepository: financeRepository,
+  );
 
   return UpdateOrderStatusUseCase(
     orderRepository: orderRepository,
     orderFinancePort: orderFinanceAdapter,
   );
+}
+
+/// 3. 💡 Fábrica pública para que el módulo Kitchen obtenga las órdenes de cocina
+GetKitchenOrdersUseCase createGetKitchenOrdersUseCase() {
+  final orderRemoteDataSource = OrderRemoteDataSourceImpl();
+  final orderRepository = OrderRepositoryImpl(
+    remoteDataSource: orderRemoteDataSource,
+  );
+
+  return GetKitchenOrdersUseCase(orderRepository: orderRepository);
+}
+
+/// 4. 💡 Fábrica pública para que el módulo Kitchen actualice estados operativos (Sin Finanzas)
+UpdateOrderOperationalStatusUseCase createUpdateOrderOperationalStatusUseCase() {
+  final orderRemoteDataSource = OrderRemoteDataSourceImpl();
+  final orderRepository = OrderRepositoryImpl(
+    remoteDataSource: orderRemoteDataSource,
+  );
+
+  return UpdateOrderOperationalStatusUseCase(orderRepository: orderRepository);
 }

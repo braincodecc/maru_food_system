@@ -2,6 +2,6 @@ import '../../../order/domain/entities/order_entity.dart'; // O puedes mapearlo 
 
 abstract class KitchenOrderPort {
   Future<List<OrderEntity>> getActiveKitchenOrders();
-  Future<void> updateOrderStatusToPreparation(String orderId);
-  Future<void> updateOrderStatusToReady(String orderId);
+  Future<void> markOrderStatusToPreparation(String orderId);
+  Future<void> markOrderStatusToReady(String orderId);
 }
