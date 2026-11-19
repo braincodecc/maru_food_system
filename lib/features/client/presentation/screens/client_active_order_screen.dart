@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../order.dart';
-import '../../../identity/identity.dart'; // Para acceder a IdentityProvider y obtener el usuario actual
+import '../../../identity/identity.dart';
+
+// Importamos el proveedor de ordenes
+import '../providers/client_order_provider.dart';
+
+// Importamos del modulo de ordenes sus entidades y enumerables
+import 'package:maru_food_system/features/order/domain/entities/order_entity.dart';
+import 'package:maru_food_system/features/order/domain/entities/order_status.enum.dart';
 
 class ClientActiveOrderScreen extends StatelessWidget {
   const ClientActiveOrderScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<OrderProvider>(context);
+    final clientOrderProvider = Provider.of<ClientOrderProvider>(context);
     // Obtenemos el ID directamente del proveedor de autenticación de la app
     final authProvider = Provider.of<IdentityProvider>(context, listen: false);
     final clientId = authProvider.currentUser!.id;
@@ -19,7 +25,7 @@ class ClientActiveOrderScreen extends StatelessWidget {
         backgroundColor: Colors.orange[800],
       ),
       body: StreamBuilder<OrderEntity?>(
-        stream: provider.watchActiveOrder(clientId),
+        stream: clientOrderProvider.watchActiveOrder(clientId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

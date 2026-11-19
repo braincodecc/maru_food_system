@@ -1,21 +1,12 @@
 import 'package:flutter/foundation.dart';
-import '../../domain/entities/ingredient_entity.dart';
-import '../../domain/usecases/get_ingredients_usecase.dart';
-import '../../domain/usecases/save_ingredient_usecase.dart';
-import '../../domain/usecases/delete_ingredient_usecase.dart';
+import 'package:maru_food_system/features/ingredient/domain/entities/ingredient_entity.dart';
+import '../../domain/ports/admin_ingredient_port.dart';
 
-class IngredientProvider extends ChangeNotifier {
-  final GetIngredientsUseCase _getIngredientsUseCase;
-  final SaveIngredientUseCase _saveIngredientUseCase;
-  final DeleteIngredientUseCase _deleteIngredientUseCase;
+class AdminIngredientProvider extends ChangeNotifier {
+  final AdminIngredientPort _adminIngredientPort;
 
-  IngredientProvider({
-    required GetIngredientsUseCase getIngredientsUseCase,
-    required SaveIngredientUseCase saveIngredientUseCase,
-    required DeleteIngredientUseCase deleteIngredientUseCase,
-  })  : _getIngredientsUseCase = getIngredientsUseCase,
-        _saveIngredientUseCase = saveIngredientUseCase,
-        _deleteIngredientUseCase = deleteIngredientUseCase;
+  AdminIngredientProvider({required AdminIngredientPort adminIngredientPort})
+      : _adminIngredientPort = adminIngredientPort;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -26,14 +17,13 @@ class IngredientProvider extends ChangeNotifier {
   List<IngredientEntity> _ingredients = [];
   List<IngredientEntity> get ingredients => _ingredients;
 
-  /// Carga todos los ingredientes desde Firestore
   Future<void> loadIngredients() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _ingredients = await _getIngredientsUseCase();
+      _ingredients = await _adminIngredientPort.getIngredients();
     } catch (e) {
       _errorMessage = 'Error al cargar los ingredientes: ${e.toString()}';
     } finally {
@@ -42,15 +32,14 @@ class IngredientProvider extends ChangeNotifier {
     }
   }
 
-  /// Guarda o actualiza un ingrediente
   Future<bool> saveIngredient(IngredientEntity ingredient) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await _saveIngredientUseCase(ingredient);
-      await loadIngredients(); // Recargamos la lista
+      await _adminIngredientPort.saveIngredient(ingredient);
+      await loadIngredients();
       return true;
     } catch (e) {
       _errorMessage = 'Error al guardar el ingrediente: ${e.toString()}';
@@ -60,14 +49,13 @@ class IngredientProvider extends ChangeNotifier {
     }
   }
 
-  /// Elimina un ingrediente por su ID
   Future<bool> deleteIngredient(String ingredientId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      await _deleteIngredientUseCase(ingredientId);
+      await _adminIngredientPort.deleteIngredient(ingredientId);
       await loadIngredients();
       return true;
     } catch (e) {

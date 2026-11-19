@@ -1,10 +1,12 @@
 import '../repositories/ingredient_repository.dart';
 
 class DeleteIngredientUseCase {
-  final IngredientRepository _repository;
-  DeleteIngredientUseCase(this._repository);
+  final IngredientRepository _ingredientRepository;
+  
+  DeleteIngredientUseCase({required IngredientRepository ingredientRepository})
+    : _ingredientRepository = ingredientRepository;
 
   Future<void> call(String ingredientId) async {
-    return await _repository.deleteIngredient(ingredientId);
+    return await _ingredientRepository.deleteIngredient(ingredientId);
   }
 }

@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../product.dart';
-import '../../../ingredient/ingredient.dart';
+
+// Importamos los provedores de productos e ingredientes
+import '../providers/admin_product_provider.dart';
+import '../providers/admin_ingredient_provider.dart';
+
+// Importamos del modulo de producto sus entidades y enumerables
+import 'package:maru_food_system/features/product/domain/entities/product_entity.dart';
+import 'package:maru_food_system/features/product/domain/entities/recipe_item_entity.dart';
+import 'package:maru_food_system/features/product/domain/entities/product_type.enum.dart';
+
+// Importamos del modulo de ingredientes sus entidades y enumerables
+import 'package:maru_food_system/features/ingredient/domain/entities/ingredient_entity.dart';
 
 class AdminProductFormScreen extends StatefulWidget {
   // Si viene un producto, estamos editando; si es nulo, estamos creando.
@@ -89,7 +99,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.productToEdit != null;
-    final ingredientProvider = context.watch<IngredientProvider>();
+    final ingredientProvider = context.watch<AdminIngredientProvider>();
     final availableIngredients = ingredientProvider.ingredients;
 
     // Cálculo financiero en tiempo real para la UI
@@ -556,7 +566,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
 
     setState(() => _isLoading = true);
 
-    final productProvider = context.read<ProductProvider>();
+    final productProvider = context.read<AdminProductProvider>();
 
     final product = ProductEntity(
       id:

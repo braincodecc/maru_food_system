@@ -2,14 +2,16 @@ import '../entities/ingredient_entity.dart';
 import '../repositories/ingredient_repository.dart';
 
 class SaveIngredientUseCase {
-  final IngredientRepository _repository;
-  SaveIngredientUseCase(this._repository);
+  final IngredientRepository _ingredientRepository;
+  
+  SaveIngredientUseCase({required IngredientRepository ingredientRepository})
+    : _ingredientRepository = ingredientRepository;
 
   Future<void> call(IngredientEntity ingredient) async {
     if (ingredient.id.isEmpty) {
-      await _repository.createIngredient(ingredient);
+      await _ingredientRepository.createIngredient(ingredient);
     } else {
-      await _repository.updateIngredient(ingredient);
+      await _ingredientRepository.updateIngredient(ingredient);
     }
   }
 }

@@ -5,9 +5,10 @@ import 'routes/app_routes.dart';
 
 // Importación limpia de los módulos mediante sus barrel files
 import '../features/identity/identity.dart';
-import '../features/product/product.dart';
-import '../features/ingredient/ingredient.dart';
-import '../features/order/order.dart';
+import '../features/admin/admin.dart';
+import '../features/client/client.dart';
+//import '../features/ingredient/ingredient.dart';
+//import '../features/order/order.dart';
 import '../features/finance/finance.dart';
 import '../features/kitchen/kitchen.dart';
 import '../features/delivery/delivery.dart';
@@ -26,19 +27,29 @@ class MyApp extends StatelessWidget {
               createIdentityProvider(sharedPreferences)..checkAuthSession(),
         ),
 
-        // Módulo de Productos (Carga el menú de Maru Food al instanciarse)
-        ChangeNotifierProvider<ProductProvider>(
-          create: (_) => createProductProvider()..loadActiveProducts(),
+        // Módulo de Cliente (Carga el menú de Maru Food al instanciarse)
+        ChangeNotifierProvider<ClientProductProvider>(
+          create: (_) => createClientProductProvider()..loadActiveProducts(),
         ),
 
-        // Módulo de Ingredientes (Carga la materia prima al iniciar)
-        ChangeNotifierProvider<IngredientProvider>(
-          create: (_) => createIngredientProvider()..loadIngredients(),
+        // Módulo de Cliente (Carga el menú de Maru Food al instanciarse)
+        ChangeNotifierProvider<ClientOrderProvider>(
+          create: (_) => createClientOrderProvider(),
         ),
 
-        // Módulo de Ordenes
-        ChangeNotifierProvider<OrderProvider>(
-          create: (_) => createOrderProvider(),
+        // Módulo de administrador (Carga los productos al iniciar)
+        ChangeNotifierProvider<AdminProductProvider>(
+          create: (_) => createAdminProductProvider()..loadProducts(),
+        ),
+
+        // Módulo de administrador (Carga los ingredientes al iniciar)
+        ChangeNotifierProvider<AdminIngredientProvider>(
+          create: (_) => createAdminIngredientProvider()..loadIngredients(),
+        ),
+
+        // Módulo de administrador (Carga las ordenes al iniciar)
+        ChangeNotifierProvider<AdminOrderProvider>(
+          create: (_) => createAdminOrderProvider()..loadOrders(),
         ),
 
         // Módulo de Finanzas
@@ -50,8 +61,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<KitchenProvider>(
           create: (_) => createKitchenProvider(),
         ),
-        
-        // Módulo de Delivery
+
+        // Módulo de repartidor
         ChangeNotifierProvider<DeliveryProvider>(
           create: (_) => createDeliveryProvider(),
         ),

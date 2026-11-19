@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../ingredient.dart';
+
+// Importamos el proveedor de ingredientes
+import '../providers/admin_ingredient_provider.dart';
+
+// Importamos del modulo de ingredientes sus entidades y enumerables
+import 'package:maru_food_system/features/ingredient/domain/entities/ingredient_entity.dart';
 
 class AdminIngredientsScreen extends StatelessWidget {
   const AdminIngredientsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final ingredientProvider = context.watch<IngredientProvider>();
+    final ingredientProvider = context.watch<AdminIngredientProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -279,7 +284,7 @@ class _IngredientFormWidgetState extends State<_IngredientFormWidget> {
 
     setState(() => _isLoading = true);
 
-    final ingredientProvider = context.read<IngredientProvider>();
+    final ingredientProvider = context.read<AdminIngredientProvider>();
 
     final ingredient = IngredientEntity(
       id: widget.ingredientToEdit?.id ?? '',

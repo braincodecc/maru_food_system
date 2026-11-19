@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:maru_food_system/app/routes/app_routes.dart';
+import 'package:maru_food_system/features/product/domain/entities/product_entity.dart';
 import 'package:provider/provider.dart';
-import '../../product.dart';
-import '../../../identity/identity.dart'; // Para el botón de cerrar sesión
+import '../../../identity/identity.dart';
+import '../providers/admin_product_provider.dart';
+import 'admin_product_form_screen.dart';
 
 class AdminProductsScreen extends StatefulWidget {
   const AdminProductsScreen({super.key});
@@ -17,13 +19,13 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
     super.initState();
     // Se ejecuta automáticamente al abrir la pantalla para garantizar datos frescos
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProductProvider>().loadActiveProducts();
+      context.read<AdminProductProvider>().loadProducts();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final productProvider = context.watch<ProductProvider>();
+    final adminProductProvider = context.watch<AdminProductProvider>();
     final identityProvider = context.watch<IdentityProvider>();
 
     return Scaffold(
@@ -49,9 +51,9 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
           ),
         ],
       ),
-      body: productProvider.isLoading
+      body: adminProductProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : productProvider.errorMessage != null
+          : adminProductProvider.errorMessage != null
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -65,20 +67,20 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      productProvider.errorMessage!,
+                      adminProductProvider.errorMessage!,
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => productProvider.loadActiveProducts(),
+                      onPressed: () => adminProductProvider.loadProducts(),
                       child: const Text('Reintentar'),
                     ),
                   ],
                 ),
               ),
             )
-          : productProvider.activeProducts.isEmpty
+          : adminProductProvider.products.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -108,9 +110,9 @@ class _AdminProductsScreenState extends State<AdminProductsScreen> {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: productProvider.activeProducts.length,
+              itemCount: adminProductProvider.products.length,
               itemBuilder: (context, index) {
-                final product = productProvider.activeProducts[index];
+                final product = adminProductProvider.products[index];
 
                 // Validamos si el producto requiere reposición según su stock mínimo
                 final bool isLowStock = product.needsRestock;

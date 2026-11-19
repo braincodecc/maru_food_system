@@ -1,53 +1,46 @@
-// Importaciones del modulo de orden
+// Importaciones del modulo de orden (local)
 import '../data/datasources/product_remote_datasource.dart';
 import '../data/repositories_impl/product_repository_impl.dart';
 import '../data/adapters/product_ingredient_adapter_impl.dart';
 import '../domain/usecases/get_active_products_usecase.dart';
 import '../domain/usecases/save_product_usecase.dart';
 import '../domain/usecases/delete_product_usecase.dart';
-import '../presentation/providers/product_provider.dart';
 
-// Importaciones del módulo de ingredientes
-import 'package:maru_food_system/features/ingredient/data/datasources/ingredient_remote_datasource.dart';
-import 'package:maru_food_system/features/ingredient/data/repositories_impl/ingredient_repository_impl.dart';
+// Importamos las fábricas públicas del módulo de ingredientes
+import 'package:maru_food_system/features/ingredient/di/ingredient_injector.dart';
 
-/// Función fábrica que arma todo el árbol de dependencias del módulo Product
-ProductProvider createProductProvider() {
-  // 1. Data Sources de Productos y de Ingredientes (Firebase Firestore)
+// 💡 Función auxiliar privada para mantener seco (DRY) el inyector de productos
+ProductRepositoryImpl _createProductRepository() {
   final productRemoteDataSource = ProductRemoteDataSourceImpl();
-  final ingredientRemoteDataSource = IngredientRemoteDataSourceImpl();
+  return ProductRepositoryImpl(remoteDataSource: productRemoteDataSource);
+}
 
-  // 2. Repositorios
-  final productRepository = ProductRepositoryImpl(
-    remoteDataSource: productRemoteDataSource,
+/// 1. Fábrica pública para obtener los productos activos (Usado por Client y Admin)
+GetActiveProductsUseCase createGetActiveProductsUseCase() {
+  return GetActiveProductsUseCase(
+    productRepository: _createProductRepository(),
   );
-  final ingredientRepository = IngredientRepositoryImpl(
-    remoteDataSource: ingredientRemoteDataSource,
-  );
+}
 
-  // 3. Adaptador de Ingredientes para el módulo de Productos
+/// 2. Fábrica pública para guardar/crear/editar productos (Usado por Admin)
+SaveProductUseCase createSaveProductUseCase() {
+  // Solicitamos el caso de uso del módulo de ingredientes
+  final getIngredientUnitCostUseCase = createGetIngredientUnitCostUseCase();
+
+  // Creamos el adaptador inyectando dicho caso de uso
   final productIngredientAdapter = ProductIngredientAdapterImpl(
-    ingredientRepository: ingredientRepository,
+    getIngredientUnitCostUseCase: getIngredientUnitCostUseCase,
   );
 
-  // 4. Casos de Uso
-  final getActiveProductsUseCase = GetActiveProductsUseCase(
-    productRepository: productRepository,
-  );
-
-  final saveProductUseCase = SaveProductUseCase(
-    productRepository: productRepository,
+  return SaveProductUseCase(
+    productRepository: _createProductRepository(),
     productIngredientPort: productIngredientAdapter,
   );
+}
 
-  final deleteProductUseCase = DeleteProductUseCase(
-    productRepository: productRepository,
-  );
-
-  // 5. Provider de Presentación
-  return ProductProvider(
-    getActiveProductsUseCase: getActiveProductsUseCase,
-    saveProductUseCase: saveProductUseCase,
-    deleteProductUseCase: deleteProductUseCase,
+/// 3. Fábrica pública para eliminar productos (Usado por Admin)
+DeleteProductUseCase createDeleteProductUseCase() {
+  return DeleteProductUseCase(
+    productRepository: _createProductRepository(),
   );
 }

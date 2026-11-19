@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:maru_food_system/app/routes/app_routes.dart';
 import 'package:provider/provider.dart';
-import '../../product.dart';
-import '../../../order/order.dart';
-import '../../../identity/identity.dart'; // Para poder cerrar sesión o validar rol si es necesario
+import 'checkout_screen.dart';
+
+// Importamos el proveedor de ordenes
+import '../providers/client_product_provider.dart';
+import '../providers/client_order_provider.dart';
+
+// Importamos del modulo de ordenes sus entidades y enumerables
+import 'package:maru_food_system/features/order/domain/entities/order_item_entity.dart';
+
+// Importaciones del modulo de identidad
+import '../../../identity/identity.dart';
 
 class ClientMenuScreen extends StatefulWidget {
   const ClientMenuScreen({super.key});
@@ -18,7 +26,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final productProvider = context.watch<ProductProvider>();
+    final clientProvider = context.watch<ClientProductProvider>();
     final identityProvider = context.watch<IdentityProvider>();
 
     return Scaffold(
@@ -44,9 +52,9 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
           ),
         ],
       ),
-      body: productProvider.isLoading
+      body: clientProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : productProvider.errorMessage != null
+          : clientProvider.errorMessage != null
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -60,20 +68,20 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      productProvider.errorMessage!,
+                      clientProvider.errorMessage!,
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => productProvider.loadActiveProducts(),
+                      onPressed: () => clientProvider.loadActiveProducts(),
                       child: const Text('Reintentar'),
                     ),
                   ],
                 ),
               ),
             )
-          : productProvider.activeProducts.isEmpty
+          : clientProvider.activeProducts.isEmpty
           ? const Center(
               child: Text(
                 'No hay productos disponibles en este momento.',
@@ -82,11 +90,11 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: productProvider.activeProducts.length,
+              itemCount: clientProvider.activeProducts.length,
               itemBuilder: (context, index) {
-                final product = productProvider.activeProducts[index];
+                final product = clientProvider.activeProducts[index];
                 // Obtenemos el stock actual directamente de la caché en memoria del Provider
-                final cachedStock = productProvider.getCachedStock(product.id);
+                final cachedStock = clientProvider.getCachedStock(product.id);
                 final cartQuantity = _cart[product.id] ?? 0;
 
                 return Card(
@@ -176,7 +184,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
                                         _cart[product.id] = cartQuantity + 1;
                                       });
                                       // Descontamos en la caché local del Provider
-                                      productProvider
+                                      clientProvider
                                           .updateLocalCacheAfterAddToCart(
                                             product.id,
                                             -1,
@@ -203,7 +211,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
                                         }
                                       });
                                       // Devolvemos a la caché local del Provider
-                                      productProvider
+                                      clientProvider
                                           .updateLocalCacheAfterAddToCart(
                                             product.id,
                                             1,
@@ -223,7 +231,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
       floatingActionButton: _cart.isNotEmpty
           ? FloatingActionButton.extended(
               onPressed: () =>
-                  _handleReserveAndCheckout(context, productProvider),
+                  _handleReserveAndCheckout(context, clientProvider),
               icon: const Icon(Icons.shopping_cart_checkout),
               label: Text(
                 'Proceder al Pago (${_cart.values.reduce((a, b) => a + b)})',
@@ -247,10 +255,10 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
   /// Reservar el stock y navegar a la pantalla de pago si la reserva es exitosa.
   void _handleReserveAndCheckout(
     BuildContext context,
-    ProductProvider productProvider,
+    ClientProductProvider clientProductProvider,
   ) async {
     final identityProvider = context.read<IdentityProvider>();
-    final orderProvider = context.read<OrderProvider>();
+    final clientOrderProvider = context.read<ClientOrderProvider>();
     final clientId = identityProvider.currentUser?.id;
 
     if (clientId == null) return;
@@ -279,7 +287,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
     double totalAmount = 0.0;
 
     _cart.forEach((productId, quantity) {
-      final product = productProvider.activeProducts.firstWhere(
+      final product = clientProductProvider.activeProducts.firstWhere(
         (p) => p.id == productId,
       );
 
@@ -297,7 +305,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
     });
 
     /// 3. Ejecutar reserva atómica en Firestore pasando la lista de entidades
-    final orderId = await orderProvider.createOrderReservation(
+    final orderId = await clientOrderProvider.createOrderReservation(
       clientId: clientId,
       isDelivery: false,
       totalAmount: totalAmount,
@@ -327,7 +335,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            orderProvider.errorMessage ?? 'No hay suficiente stock disponible.',
+            clientOrderProvider.errorMessage ?? 'No hay suficiente stock disponible.',
           ),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 4),

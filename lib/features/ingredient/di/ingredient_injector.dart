@@ -3,19 +3,33 @@ import '../data/repositories_impl/ingredient_repository_impl.dart';
 import '../domain/usecases/get_ingredients_usecase.dart';
 import '../domain/usecases/save_ingredient_usecase.dart';
 import '../domain/usecases/delete_ingredient_usecase.dart';
-import '../presentation/providers/ingredient_provider.dart';
+import '../domain/usecases/get_ingredient_unit_cost_usecase.dart';
 
-IngredientProvider createIngredientProvider() {
+IngredientRepositoryImpl _createIngredientRepository() {
   final remoteDataSource = IngredientRemoteDataSourceImpl();
-  final repository = IngredientRepositoryImpl(remoteDataSource: remoteDataSource);
+  return IngredientRepositoryImpl(remoteDataSource: remoteDataSource);
+}
 
-  final getIngredientsUseCase = GetIngredientsUseCase(repository);
-  final saveIngredientUseCase = SaveIngredientUseCase(repository);
-  final deleteIngredientUseCase = DeleteIngredientUseCase(repository);
+GetIngredientsUseCase createGetIngredientsUseCase() {
+  return GetIngredientsUseCase(
+    ingredientRepository: _createIngredientRepository(),
+  );
+}
 
-  return IngredientProvider(
-    getIngredientsUseCase: getIngredientsUseCase,
-    saveIngredientUseCase: saveIngredientUseCase,
-    deleteIngredientUseCase: deleteIngredientUseCase,
+SaveIngredientUseCase createSaveIngredientUseCase() {
+  return SaveIngredientUseCase(
+    ingredientRepository: _createIngredientRepository(),
+  );
+}
+
+DeleteIngredientUseCase createDeleteIngredientUseCase() {
+  return DeleteIngredientUseCase(
+    ingredientRepository: _createIngredientRepository(),
+  );
+}
+
+GetIngredientUnitCostUseCase createGetIngredientUnitCostUseCase() {
+  return GetIngredientUnitCostUseCase(
+    ingredientRepository: _createIngredientRepository(),
   );
 }

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../order.dart';
-//import '../../../product/product.dart';
+
+// Importamos el proveedor de ordenes
+import '../providers/client_order_provider.dart';
+
+// Importamos del modulo de ordenes sus entidades y enumerables
+import 'package:maru_food_system/features/order/domain/entities/order_item_entity.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final String orderId;
@@ -37,7 +41,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orderProvider = context.watch<OrderProvider>();
+    final orderProvider = context.watch<ClientOrderProvider>();
 
     return Scaffold(
       appBar: AppBar(

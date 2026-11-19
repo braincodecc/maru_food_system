@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:maru_food_system/features/order/domain/entities/order_entity.dart';
+import 'package:maru_food_system/features/order/domain/entities/order_status.enum.dart';
 import 'package:provider/provider.dart';
-import '../../order.dart';
-import '../../../identity/identity.dart';
+
+import '../providers/admin_order_provider.dart';
+import 'package:maru_food_system/features/identity/presentation/providers/identity_provider.dart';
 
 class AdminOrdersScreen extends StatefulWidget {
   const AdminOrdersScreen({super.key});
@@ -16,13 +19,13 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     super.initState();
     // Cargamos los pedidos apenas entra el administrador
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrderProvider>().loadAllOrders();
+      context.read<AdminOrderProvider>().loadOrders();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final orderProvider = context.watch<OrderProvider>();
+    final orderProvider = context.watch<AdminOrderProvider>();
     final identityProvider = context.watch<IdentityProvider>();
 
     return Scaffold(
@@ -33,7 +36,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Actualizar',
-            onPressed: () => orderProvider.loadAllOrders(),
+            onPressed: () => orderProvider.loadOrders(),
           ),
           // Botón de cerrar sesión
           IconButton(
@@ -59,7 +62,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                 ),
               ),
             )
-          : orderProvider.allOrders.isEmpty
+          : orderProvider.orders.isEmpty
           ? const Center(
               child: Text(
                 'No hay pedidos registrados en el sistema.',
@@ -67,12 +70,12 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
               ),
             )
           : RefreshIndicator(
-              onRefresh: () => orderProvider.loadAllOrders(),
+              onRefresh: () => orderProvider.loadOrders(),
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
-                itemCount: orderProvider.allOrders.length,
+                itemCount: orderProvider.orders.length,
                 itemBuilder: (context, index) {
-                  final order = orderProvider.allOrders[index];
+                  final order = orderProvider.orders[index];
                   return _buildOrderCard(context, order, orderProvider);
                 },
               ),
@@ -83,7 +86,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
   Widget _buildOrderCard(
     BuildContext context,
     OrderEntity order,
-    OrderProvider provider,
+    AdminOrderProvider provider,
   ) {
     Color statusColor;
     switch (order.status) {
@@ -230,7 +233,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
 
                         if (success) {
                           // 2. Refrescamos la lista de órdenes y el stock de productos
-                          await provider.loadAllOrders();
+                          await provider.loadOrders();
 
                           // 3. Mostramos mensaje de éxito
                           messenger.showSnackBar(
@@ -281,7 +284,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                             if (!mounted || messenger == null) return;
 
                             if (success) {
-                              await provider.loadAllOrders();
+                              await provider.loadOrders();
                               messenger.showSnackBar(
                                 const SnackBar(
                                   content: Text(

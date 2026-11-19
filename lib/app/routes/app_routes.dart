@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 // Importaciones limpias utilizando ÚNICAMENTE los archivos Barrel globales de cada módulo
 import '../../features/identity/identity.dart';
-import '../../features/product/product.dart';
+import '../../features/admin/admin.dart';
+import '../../features/client/client.dart';
 import '../../features/ingredient/ingredient.dart';
 import '../../features/order/order.dart';
 import '../../features/finance/finance.dart';

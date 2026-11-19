@@ -2,7 +2,7 @@ import '../../domain/entities/financial_account_entity.dart';
 import '../../domain/entities/financial_transaction_entity.dart';
 import '../../domain/repositories/finance_repository.dart';
 import '../datasources/finance_remote_datasource.dart';
-import '../models/financial_account_model.dart';
+//import '../models/financial_account_model.dart';
 import '../models/financial_transaction_model.dart';
 
 class FinanceRepositoryImpl implements FinanceRepository {
