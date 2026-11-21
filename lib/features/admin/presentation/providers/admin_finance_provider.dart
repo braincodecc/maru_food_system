@@ -7,7 +7,7 @@ class AdminFinanceProvider extends ChangeNotifier {
   final AdminFinancePort _adminFinancePort;
 
   AdminFinanceProvider({required AdminFinancePort adminFinancePort})
-      : _adminFinancePort = adminFinancePort;
+    : _adminFinancePort = adminFinancePort;
 
   List<FinancialAccountEntity> _accounts = [];
   List<FinancialTransactionEntity> _transactions = [];
@@ -40,12 +40,44 @@ class AdminFinanceProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _transactions = await _adminFinancePort.getTransactionsByAccount(accountId);
+      _transactions = await _adminFinancePort.getTransactionsByAccount(
+        accountId,
+      );
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<bool> registerBankTransfer({
+    required String accountId,
+    required double currentBalance,
+    required double amountToTransfer,
+    required String bankReference,
+    String? notes,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _adminFinancePort.transferFundsToBank(
+        accountId: accountId,
+        currentBalance: currentBalance,
+        amountToTransfer: amountToTransfer,
+        bankReference: bankReference,
+        notes: notes,
+      );
+      // Recargamos las cuentas para actualizar el saldo disponible en pantalla
+      await loadAccounts();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 }

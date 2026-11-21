@@ -81,6 +81,7 @@ AdminFinanceProvider createAdminFinanceProvider() {
   final adminFinanceAdapter = AdminFinanceAdapterImpl(
     getFinancialAccountsUseCase: createGetFinancialAccountsUseCase(),
     getTransactionsByAccountUseCase: createGetTransactionsByAccountUseCase(),
+    transferAccountFundsUseCase: createTransferAccountFundsUseCase(),
   );
 
   return AdminFinanceProvider(

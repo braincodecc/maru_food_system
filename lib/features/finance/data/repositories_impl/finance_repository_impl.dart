@@ -15,9 +15,7 @@ class FinanceRepositoryImpl implements FinanceRepository {
   Future<List<FinancialAccountEntity>> getAccounts() async {
     try {
       final models = await _remoteDataSource.getAccounts();
-      return models
-          .map((model) => model.toEntity())
-          .toList();
+      return models.map((model) => model.toEntity()).toList();
     } catch (e) {
       throw Exception('Error al obtener las cuentas financieras: $e');
     }
@@ -57,12 +55,32 @@ class FinanceRepositoryImpl implements FinanceRepository {
     String accountId,
   ) async {
     try {
-      final models = await _remoteDataSource.getTransactionsByAccount(accountId);
+      final models = await _remoteDataSource.getTransactionsByAccount(
+        accountId,
+      );
       return models.map((model) => model.toEntity()).toList();
     } catch (e) {
       throw Exception(
         'Error al obtener transacciones de la cuenta $accountId: $e',
       );
+    }
+  }
+
+  @override
+  Future<void> executeAccountTransfer({
+    required String accountId,
+    required double amountToTransfer,
+    required FinancialTransactionEntity transaction,
+  }) async {
+    try {
+      final model = FinancialTransactionModel.fromEntity(transaction);
+      await _remoteDataSource.executeAccountTransfer(
+        accountId: accountId,
+        amountToTransfer: amountToTransfer,
+        transaction: model,
+      );
+    } catch (e) {
+      throw Exception('Error al transferir fondos entre cuentas: $e');
     }
   }
 }

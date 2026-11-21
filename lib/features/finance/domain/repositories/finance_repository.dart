@@ -7,4 +7,9 @@ abstract class FinanceRepository {
   Future<void> updateAccountBalance(String accountId, double newBalance);
   Future<void> recordTransaction(FinancialTransactionEntity transaction);
   Future<List<FinancialTransactionEntity>> getTransactionsByAccount(String accountId);
+  Future<void> executeAccountTransfer({
+    required String accountId,
+    required double amountToTransfer,
+    required FinancialTransactionEntity transaction,
+  });
 }

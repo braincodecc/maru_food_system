@@ -33,64 +33,69 @@ class _AdminFinanceScreenState extends State<AdminFinanceScreen> {
       body: financeProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : financeProvider.errorMessage != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Text(
-                      'Error: ${financeProvider.errorMessage}',
-                      style: const TextStyle(color: Colors.red, fontSize: 16),
-                      textAlign: TextAlign.center,
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  'Error: ${financeProvider.errorMessage}',
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: () => financeProvider.loadAccounts(),
+              child: ListView(
+                padding: const EdgeInsets.all(16.0),
+                children: [
+                  const Text(
+                    'Reflejo Contable de Cuentas',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: () => financeProvider.loadAccounts(),
-                  child: ListView(
-                    padding: const EdgeInsets.all(16.0),
-                    children: [
-                      const Text(
-                        'Reflejo Contable de Cuentas',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Control estricto para separar capital de trabajo y ganancias.',
-                        style: TextStyle(fontSize: 13, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Tarjetas de Cuentas (Reposición vs Sueldos)
-                      ...financeProvider.accounts.map((account) {
-                        return _buildAccountCard(context, account);
-                      }),
-
-                      if (financeProvider.accounts.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: Center(
-                            child: Text(
-                              'No hay cuentas contables registradas en el sistema.',
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ),
-                        ),
-                    ],
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Control estricto para separar capital de trabajo y ganancias.',
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
                   ),
-                ),
+                  const SizedBox(height: 16),
+
+                  // Tarjetas de Cuentas (Reposición vs Sueldos)
+                  ...financeProvider.accounts.map((account) {
+                    return _buildAccountCard(context, account);
+                  }),
+
+                  if (financeProvider.accounts.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Center(
+                        child: Text(
+                          'No hay cuentas contables registradas en el sistema.',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
     );
   }
 
   /// Widget para renderizar cada tarjeta de cuenta con diseño diferenciado
-  Widget _buildAccountCard(BuildContext context, FinancialAccountEntity account) {
+  Widget _buildAccountCard(
+    BuildContext context,
+    FinancialAccountEntity account,
+  ) {
     final isRestocking = account.type == 'restocking';
     final cardColor = isRestocking ? Colors.blue[50] : Colors.green[50];
     final borderColor = isRestocking ? Colors.blue : Colors.green;
     final iconColor = isRestocking ? Colors.blue[800] : Colors.green[800];
-    final icon = isRestocking ? Icons.inventory_2_rounded : Icons.payments_rounded;
+    final icon = isRestocking
+        ? Icons.inventory_2_rounded
+        : Icons.payments_rounded;
 
     return Card(
       elevation: 3,
@@ -126,7 +131,10 @@ class _AdminFinanceScreenState extends State<AdminFinanceScreen> {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: borderColor,
                     borderRadius: BorderRadius.circular(6),
@@ -165,9 +173,167 @@ class _AdminFinanceScreenState extends State<AdminFinanceScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: account.balance > 0
+                    ? () => _showTransferToBankDialog(context, account)
+                    : null,
+                icon: const Icon(Icons.account_balance_rounded, size: 18),
+                label: Text(
+                  isRestocking
+                      ? 'Transferir para Reposición'
+                      : 'Transferir Sueldos / Utilidad',
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: borderColor,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey[300],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  void _showTransferToBankDialog(
+    BuildContext context,
+    FinancialAccountEntity account,
+  ) {
+    final formKey = GlobalKey<FormState>();
+    final amountController = TextEditingController(
+      // Prellenado con el total disponible
+      text: account.balance.toStringAsFixed(2),
+    );
+    final referenceController = TextEditingController();
+    final notesController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text('Transferir - ${account.name}'),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Disponible en caja: \$${account.balance.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: amountController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: 'Monto a transferir (\$)',
+                      border: const OutlineInputBorder(),
+                      suffixIcon: TextButton(
+                        onPressed: () {
+                          amountController.text = account.balance
+                              .toStringAsFixed(2);
+                        },
+                        child: const Text('Todo'),
+                      ),
+                    ),
+                    validator: (val) {
+                      final amount = double.tryParse(val ?? '');
+                      if (amount == null || amount <= 0) {
+                        return 'Ingresa un monto válido';
+                      }
+                      if (amount > account.balance) {
+                        return 'Supera el saldo disponible';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: referenceController,
+                    decoration: const InputDecoration(
+                      labelText: 'Referencia Bancaria',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (val) => val == null || val.trim().isEmpty
+                        ? 'Ingresa la referencia del movimiento'
+                        : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: notesController,
+                    decoration: InputDecoration(
+                      labelText: account.type == 'restocking'
+                          ? 'Detalle (Ej: Compra pan y carne)'
+                          : 'Detalle (Ej: Pago quincena)',
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+
+                final amount = double.parse(amountController.text.trim());
+                final reference = referenceController.text.trim();
+                final notes = notesController.text.trim();
+
+                Navigator.of(dialogContext).pop();
+
+                final success = await context
+                    .read<AdminFinanceProvider>()
+                    .registerBankTransfer(
+                      accountId: account.id,
+                      currentBalance: account.balance,
+                      amountToTransfer: amount,
+                      bankReference: reference,
+                      notes: notes,
+                    );
+
+                if (!mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Transferencia registrada. Saldo disponible actualizado.'
+                          : context.read<AdminFinanceProvider>().errorMessage ??
+                                'Error al registrar la transferencia',
+                    ),
+                    backgroundColor: success ? Colors.green : Colors.red,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.deepOrange,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Confirmar Transferencia'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

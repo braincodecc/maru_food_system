@@ -4,4 +4,11 @@ import 'package:maru_food_system/features/finance/domain/entities/financial_tran
 abstract class AdminFinancePort {
   Future<List<FinancialAccountEntity>> getAccounts();
   Future<List<FinancialTransactionEntity>> getTransactionsByAccount(String accountId);
+  Future<void> transferFundsToBank({
+    required String accountId,
+    required double currentBalance,
+    required double amountToTransfer,
+    required String bankReference,
+    String? notes,
+  });
 }
