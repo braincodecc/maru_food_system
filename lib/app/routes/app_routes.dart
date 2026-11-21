@@ -4,9 +4,6 @@ import 'package:flutter/material.dart';
 import '../../features/identity/identity.dart';
 import '../../features/admin/admin.dart';
 import '../../features/client/client.dart';
-import '../../features/ingredient/ingredient.dart';
-import '../../features/order/order.dart';
-import '../../features/finance/finance.dart';
 import '../../features/kitchen/kitchen.dart';
 import '../../features/delivery/delivery.dart';
 
@@ -72,7 +69,7 @@ class AppRoutes {
       // 9. Gestión Financiera (Protegido para Admin)
       adminFinance: (context) => RoleGuard(
         allowedRoles: const [UserRole.admin],
-        child: const FinanceDashboardScreen(),
+        child: const AdminFinanceScreen(),
       ),
 
       // Ruta protegida para Cocineros y Administradores (Módulo Cocina/KDS)

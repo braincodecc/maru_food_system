@@ -1,28 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/finance_provider.dart';
-import '../../domain/entities/financial_account_entity.dart';
+import '../providers/admin_finance_provider.dart';
+import 'package:maru_food_system/features/finance/domain/entities/financial_account_entity.dart';
 
-class FinanceDashboardScreen extends StatefulWidget {
-  const FinanceDashboardScreen({super.key});
+class AdminFinanceScreen extends StatefulWidget {
+  const AdminFinanceScreen({super.key});
 
   @override
-  State<FinanceDashboardScreen> createState() => _FinanceDashboardScreenState();
+  State<AdminFinanceScreen> createState() => _AdminFinanceScreenState();
 }
 
-class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
+class _AdminFinanceScreenState extends State<AdminFinanceScreen> {
   @override
   void initState() {
     super.initState();
     // Cargamos las cuentas financieras al abrir la pantalla
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FinanceProvider>().loadAccounts();
+      context.read<AdminFinanceProvider>().loadAccounts();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final financeProvider = context.watch<FinanceProvider>();
+    final financeProvider = context.watch<AdminFinanceProvider>();
 
     return Scaffold(
       appBar: AppBar(

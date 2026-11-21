@@ -9,7 +9,7 @@ import '../features/admin/admin.dart';
 import '../features/client/client.dart';
 //import '../features/ingredient/ingredient.dart';
 //import '../features/order/order.dart';
-import '../features/finance/finance.dart';
+//import '../features/finance/finance.dart';
 import '../features/kitchen/kitchen.dart';
 import '../features/delivery/delivery.dart';
 
@@ -52,9 +52,9 @@ class MyApp extends StatelessWidget {
           create: (_) => createAdminOrderProvider()..loadOrders(),
         ),
 
-        // Módulo de Finanzas
-        ChangeNotifierProvider<FinanceProvider>(
-          create: (_) => createFinanceProvider(),
+        // Módulo de administrador (Carga las finanzas al iniciar)
+        ChangeNotifierProvider<AdminFinanceProvider>(
+          create: (_) => createAdminFinanceProvider()..loadAccounts(),
         ),
 
         // Módulo de Cocina
