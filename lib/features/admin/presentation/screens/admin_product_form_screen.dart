@@ -193,7 +193,9 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                   Expanded(
                     child: TextFormField(
                       controller: _purchasePriceController,
-                      enabled: _selectedType == ProductType.comprado, // Deshabilitado si es fabricado
+                      enabled:
+                          _selectedType ==
+                          ProductType.comprado, // Deshabilitado si es fabricado
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -406,7 +408,7 @@ class _AdminProductFormScreenState extends State<AdminProductFormScreen> {
                             margin: const EdgeInsets.only(bottom: 8),
                             child: ListTile(
                               title: Text(
-                                ingredientDetails.name,
+                                "${ingredientDetails.name} (\$${(item.quantityRequired * ingredientDetails.unitCost).toStringAsFixed(2)})",
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
