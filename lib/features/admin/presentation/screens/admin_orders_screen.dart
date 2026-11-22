@@ -191,7 +191,27 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  order.isDelivery ? Icons.delivery_dining : Icons.storefront,
+                  size: 16,
+                  color: order.isDelivery ? Colors.indigo : Colors.teal,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  order.isDelivery
+                      ? 'Modalidad: Delivery'
+                      : 'Modalidad: Retiro en Local (Pickup)',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: order.isDelivery ? Colors.indigo : Colors.teal[800],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
 
             // Resumen de Productos del Pedido
             const Text(
@@ -315,18 +335,51 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                   ),
                 ],
               )
-            else if (order.status == OrderStatus.approved)
+            else if (order.status == OrderStatus.ready && !order.isDelivery)
               Align(
                 alignment: Alignment.centerRight,
                 child: ElevatedButton.icon(
-                  onPressed: () => provider.changeOrderStatus(
-                    order.id,
-                    OrderStatus.inPreparation,
+                  onPressed: () => _confirmAction(
+                    context,
+                    'Completar Pedido Pickup',
+                    '¿Confirmas que el cliente retiró el pedido en el local? Esto registrará los ingresos en las cuentas financieras.',
+                    () async {
+                      final messenger = ScaffoldMessenger.maybeOf(context);
+                      final success = await provider.changeOrderStatus(
+                        order.id,
+                        OrderStatus.completed,
+                      );
+
+                      if (!mounted || messenger == null) return;
+
+                      if (success) {
+                        await provider.loadOrders();
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Pedido completado e ingresos distribuidos en finanzas.',
+                            ),
+                            backgroundColor: Colors.teal,
+                          ),
+                        );
+                      } else {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              provider.errorMessage ??
+                                  'Error al completar el pedido.',
+                            ),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    Colors.teal,
                   ),
-                  icon: const Icon(Icons.local_shipping, color: Colors.white),
-                  label: const Text('Marcar como En Preparación'),
+                  icon: const Icon(Icons.task_alt, color: Colors.white),
+                  label: const Text('Completar Pedido (Pickup)'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple,
+                    backgroundColor: Colors.teal,
                     foregroundColor: Colors.white,
                   ),
                 ),
@@ -337,7 +390,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     );
   }
 
-  /// Diálogo de confirmación para evitar rechazos accidentales
+  /// Diálogo de confirmación para evitar rechazos accidentales (reutilizable)
   void _confirmAction(
     BuildContext
     parentContext, // 1. Renombramos para dejar claro que es el contexto de la pantalla

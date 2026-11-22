@@ -13,11 +13,18 @@ class UpdateOrderStatusUseCase {
        _orderFinancePort = orderFinancePort;
 
   Future<void> call(String orderId, OrderStatus newStatus) async {
-    // 1. Actualizamos el estado de la orden en el repositorio (Firestore / Base de datos)
+    final currentOrder = await _orderRepository.getOrderById(orderId);
+    if (currentOrder == null) {
+      throw Exception('No se encontró la orden con ID: $orderId.');
+    }
+
+    final alreadyCompleted = currentOrder.status == OrderStatus.completed;
+
+    // 1. Actualizamos el estado de la orden en el repositorio
     await _orderRepository.updateOrderStatus(orderId, newStatus);
 
-    // 2. Si la orden se marca como completada, necesitamos los datos detallados para las finanzas
-    if (newStatus == OrderStatus.completed) {
+    // 2. Si pasa a completado por primera vez, distribuimos ingresos en finanzas
+    if (newStatus == OrderStatus.completed && !alreadyCompleted) {
       final updatedOrder = await _orderRepository.getOrderById(orderId);
 
       if (updatedOrder == null) {
