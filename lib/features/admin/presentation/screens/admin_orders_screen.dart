@@ -226,167 +226,343 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
               ),
             ),
 
-            const SizedBox(height: 16),
-
-            // Botones de Acción para el Administrador
-            if (order.status == OrderStatus.awaitingPayment ||
-                order.status == OrderStatus.pendingVerification)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => _confirmAction(
-                      context,
-                      'Rechazar Pedido',
-                      '¿Estás seguro de rechazar este pedido? El stock y los ingredientes serán devueltos al almacén automáticamente.',
-                      () async {
-                        final messenger = ScaffoldMessenger.maybeOf(context);
-
-                        // 1. Ejecutamos el cambio de estado y capturamos el booleano resultante
-                        final success = await provider.changeOrderStatus(
-                          order.id,
-                          OrderStatus.rejected,
-                        );
-
-                        // Verificamos que el widget siga montado antes de usar el contexto
-                        if (!mounted || messenger == null) return;
-
-                        if (success) {
-                          // 2. Refrescamos la lista de órdenes y el stock de productos
-                          await provider.loadOrders();
-
-                          // 3. Mostramos mensaje de éxito
-                          messenger.showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Pedido rechazado con éxito. Stock devuelto al almacén.',
-                              ),
-                              backgroundColor: Colors.green,
-                              duration: Duration(seconds: 4),
-                            ),
-                          );
-                        } else {
-                          // 4. Si falló, mostramos el mensaje de error que trae el provider
-                          messenger.showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                provider.errorMessage ??
-                                    'No fue posible rechazar la orden.',
-                              ),
-                              backgroundColor: Colors.red,
-                              duration: const Duration(seconds: 4),
-                            ),
-                          );
-                        }
-                      },
-                      Colors.red,
-                    ),
-                    icon: const Icon(Icons.close, color: Colors.red),
-                    label: const Text(
-                      'Rechazar',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  ElevatedButton.icon(
-                    onPressed: order.status == OrderStatus.pendingVerification
-                        ? () async {
-                            final messenger = ScaffoldMessenger.maybeOf(
-                              context,
-                            );
-                            final success = await provider.changeOrderStatus(
-                              order.id,
-                              OrderStatus.approved,
-                            );
-
-                            if (!mounted || messenger == null) return;
-
-                            if (success) {
-                              await provider.loadOrders();
-                              messenger.showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    '¡Pago aprobado con éxito! Pedido pasado a preparación.',
-                                  ),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            } else {
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    provider.errorMessage ??
-                                        'Error al aprobar el pedido.',
-                                  ),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        : null,
-                    icon: const Icon(Icons.check, color: Colors.white),
-                    label: const Text('Aprobar Pago'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              )
-            else if (order.status == OrderStatus.ready && !order.isDelivery)
-              Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton.icon(
-                  onPressed: () => _confirmAction(
-                    context,
-                    'Completar Pedido Pickup',
-                    '¿Confirmas que el cliente retiró el pedido en el local? Esto registrará los ingresos en las cuentas financieras.',
-                    () async {
-                      final messenger = ScaffoldMessenger.maybeOf(context);
-                      final success = await provider.changeOrderStatus(
-                        order.id,
-                        OrderStatus.completed,
-                      );
-
-                      if (!mounted || messenger == null) return;
-
-                      if (success) {
-                        await provider.loadOrders();
-                        messenger.showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'Pedido completado e ingresos distribuidos en finanzas.',
-                            ),
-                            backgroundColor: Colors.teal,
-                          ),
-                        );
-                      } else {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              provider.errorMessage ??
-                                  'Error al completar el pedido.',
-                            ),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
-                    },
-                    Colors.teal,
-                  ),
-                  icon: const Icon(Icons.task_alt, color: Colors.white),
-                  label: const Text('Completar Pedido (Pickup)'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ),
+            const SizedBox(height: 12),
+            _buildOrderActions(context, order, provider),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildOrderActions(
+    BuildContext context,
+    OrderEntity order,
+    AdminOrderProvider provider,
+  ) {
+    final List<Widget> primaryActions = [];
+
+    switch (order.status) {
+      case OrderStatus.awaitingPayment:
+      case OrderStatus.pendingVerification:
+        primaryActions.addAll([
+          OutlinedButton.icon(
+            onPressed: () => _confirmAction(
+              context,
+              'Rechazar Pedido',
+              '¿Estás seguro de rechazar este pedido? El stock y los ingredientes serán devueltos al almacén automáticamente.',
+              () => _applyStatusChange(
+                context,
+                provider,
+                order,
+                OrderStatus.rejected,
+                successMessage:
+                    'Pedido rechazado con éxito. Stock devuelto al almacén.',
+              ),
+              Colors.red,
+            ),
+            icon: const Icon(Icons.close, color: Colors.red),
+            label: const Text('Rechazar', style: TextStyle(color: Colors.red)),
+          ),
+          ElevatedButton.icon(
+            onPressed: order.status == OrderStatus.pendingVerification
+                ? () => _applyStatusChange(
+                    context,
+                    provider,
+                    order,
+                    OrderStatus.approved,
+                    successMessage:
+                        '¡Pago aprobado con éxito! Pedido listo para cocina.',
+                  )
+                : null,
+            icon: const Icon(Icons.check, color: Colors.white),
+            label: const Text('Aprobar Pago'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ]);
+        break;
+
+      case OrderStatus.approved:
+        primaryActions.addAll([
+          ElevatedButton.icon(
+            onPressed: () => _applyStatusChange(
+              context,
+              provider,
+              order,
+              OrderStatus.inPreparation,
+              successMessage: 'Pedido marcado como En Preparación.',
+              successColor: Colors.amber.shade800,
+            ),
+            icon: const Icon(Icons.soup_kitchen, color: Colors.white),
+            label: const Text('En Preparación'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber.shade800,
+              foregroundColor: Colors.white,
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: () => _applyStatusChange(
+              context,
+              provider,
+              order,
+              OrderStatus.ready,
+              successMessage: 'Pedido marcado como Listo para Despacho.',
+              successColor: Colors.lightGreen.shade700,
+            ),
+            icon: const Icon(Icons.done_all),
+            label: const Text('Marcar Listo'),
+          ),
+        ]);
+        break;
+
+      case OrderStatus.inPreparation:
+        primaryActions.add(
+          ElevatedButton.icon(
+            onPressed: () => _applyStatusChange(
+              context,
+              provider,
+              order,
+              OrderStatus.ready,
+              successMessage: 'Pedido marcado como Listo para Despacho.',
+              successColor: Colors.lightGreen.shade700,
+            ),
+            icon: const Icon(Icons.done_all, color: Colors.white),
+            label: const Text('Marcar Listo'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.lightGreen.shade700,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        );
+        break;
+
+      case OrderStatus.ready:
+        if (!order.isDelivery) {
+          primaryActions.add(
+            ElevatedButton.icon(
+              onPressed: () => _confirmAction(
+                context,
+                'Completar Pedido Pickup',
+                '¿Confirmas que el cliente retiró el pedido en el local? Esto registrará los ingresos en las cuentas financieras.',
+                () => _applyStatusChange(
+                  context,
+                  provider,
+                  order,
+                  OrderStatus.completed,
+                  successMessage:
+                      'Pedido completado e ingresos distribuidos en finanzas.',
+                  successColor: Colors.teal,
+                ),
+                Colors.teal,
+              ),
+              icon: const Icon(Icons.task_alt, color: Colors.white),
+              label: const Text('Completar Pedido (Pickup)'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          );
+        } else {
+          primaryActions.add(
+            ElevatedButton.icon(
+              onPressed: () => _applyStatusChange(
+                context,
+                provider,
+                order,
+                OrderStatus.outForDelivery,
+                successMessage: 'Pedido marcado como En Camino (Delivery).',
+                successColor: Colors.indigo,
+              ),
+              icon: const Icon(Icons.delivery_dining, color: Colors.white),
+              label: const Text('Salir a Reparto'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.indigo,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          );
+        }
+        break;
+
+      case OrderStatus.outForDelivery:
+        primaryActions.add(
+          ElevatedButton.icon(
+            onPressed: () => _applyStatusChange(
+              context,
+              provider,
+              order,
+              OrderStatus.delivered,
+              successMessage: 'Pedido marcado como Entregado.',
+              successColor: Colors.purple,
+            ),
+            icon: const Icon(Icons.home_filled, color: Colors.white),
+            label: const Text('Marcar Entregado'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.purple,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        );
+        break;
+
+      case OrderStatus.delivered:
+        primaryActions.add(
+          ElevatedButton.icon(
+            onPressed: () => _confirmAction(
+              context,
+              'Completar Pedido',
+              '¿Confirmas que el pedido finalizó correctamente? Esto registrará los ingresos en las cuentas financieras.',
+              () => _applyStatusChange(
+                context,
+                provider,
+                order,
+                OrderStatus.completed,
+                successMessage:
+                    'Pedido completado e ingresos distribuidos en finanzas.',
+                successColor: Colors.teal,
+              ),
+              Colors.teal,
+            ),
+            icon: const Icon(Icons.task_alt, color: Colors.white),
+            label: const Text('Completar Pedido'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.teal,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        );
+        break;
+
+      case OrderStatus.completed:
+      case OrderStatus.rejected:
+        break;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (primaryActions.isNotEmpty)
+          Wrap(
+            alignment: WrapAlignment.end,
+            spacing: 10,
+            runSpacing: 8,
+            children: primaryActions,
+          ),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: () =>
+                _showEmergencyStatusDialog(context, order, provider),
+            icon: const Icon(Icons.tune, size: 16, color: Colors.grey),
+            label: const Text(
+              'Cambiar estado (Emergencia)',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showEmergencyStatusDialog(
+    BuildContext context,
+    OrderEntity order,
+    AdminOrderProvider provider,
+  ) {
+    OrderStatus selectedStatus = order.status;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(
+                'Cambio Manual - #${order.id.substring(0, 6).toUpperCase()}',
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Usa esta opción solo en contingencias operativas (fallas de cocina, repartidor o soporte):',
+                    style: TextStyle(fontSize: 12, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<OrderStatus>(
+                    value: selectedStatus,
+                    decoration: const InputDecoration(
+                      labelText: 'Nuevo estado',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: OrderStatus.values.map((status) {
+                      return DropdownMenuItem(
+                        value: status,
+                        child: Text(status.label),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setDialogState(() => selectedStatus = value);
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: selectedStatus == order.status
+                      ? null
+                      : () {
+                          Navigator.pop(dialogContext);
+                          final requiresFinanceConfirm =
+                              selectedStatus == OrderStatus.completed ||
+                              selectedStatus == OrderStatus.rejected;
+
+                          if (requiresFinanceConfirm) {
+                            _confirmAction(
+                              context,
+                              'Confirmar: ${selectedStatus.label}',
+                              'Cambiar a "${selectedStatus.label}" puede afectar inventario o distribuir ingresos financieros. ¿Deseas continuar?',
+                              () => _applyStatusChange(
+                                context,
+                                provider,
+                                order,
+                                selectedStatus,
+                                successMessage:
+                                    'Estado actualizado a "${selectedStatus.label}".',
+                              ),
+                              Colors.deepOrange,
+                            );
+                          } else {
+                            _applyStatusChange(
+                              context,
+                              provider,
+                              order,
+                              selectedStatus,
+                              successMessage:
+                                  'Estado actualizado a "${selectedStatus.label}".',
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.deepOrange,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('Aplicar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -430,5 +606,40 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
         );
       },
     );
+  }
+
+  Future<void> _applyStatusChange(
+    BuildContext context,
+    AdminOrderProvider provider,
+    OrderEntity order,
+    OrderStatus targetStatus, {
+    required String successMessage,
+    Color successColor = Colors.green,
+  }) async {
+    final messenger = ScaffoldMessenger.maybeOf(context);
+    final success = await provider.changeOrderStatus(order.id, targetStatus);
+
+    if (!mounted || messenger == null) return;
+
+    if (success) {
+      await provider.loadOrders();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(successMessage),
+          backgroundColor: successColor,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    } else {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            provider.errorMessage ?? 'No fue posible actualizar el estado.',
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+    }
   }
 }

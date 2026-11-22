@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/delivery_provider.dart';
+import 'package:maru_food_system/app/routes/app_routes.dart';
 
 // Importaciones del modulo de ordenes
 import 'package:maru_food_system/features/order/domain/entities/order_status.enum.dart';
 import 'package:maru_food_system/features/order/domain/entities/order_entity.dart';
+
+// Importamos del modulo de ordenes sus entidades y enumerables
+import 'package:maru_food_system/features/order/domain/entities/order_item_entity.dart';
+
+// Importaciones del modulo de identidad
+import '../../../identity/identity.dart';
 
 class DeliveryOrdersScreen extends StatefulWidget {
   const DeliveryOrdersScreen({super.key});
@@ -25,6 +32,7 @@ class _DeliveryOrdersScreenState extends State<DeliveryOrdersScreen> {
   @override
   Widget build(BuildContext context) {
     final deliveryProvider = context.watch<DeliveryProvider>();
+    final identityProvider = context.watch<IdentityProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -36,33 +44,53 @@ class _DeliveryOrdersScreenState extends State<DeliveryOrdersScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: () => deliveryProvider.loadDeliveryOrders(),
           ),
+          // Botón para cerrar sesión (demostrando uso del módulo identity)
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () async {
+              await identityProvider.logout();
+              // AuthWrapper se encargará de redirigir al Login automáticamente
+              // Limpiamos todo el historial de navegación y regresamos al AuthWrapper raíz ('/')
+              Navigator.pushNamedAndRemoveUntil(
+                // Elimina todas las pantallas superiores de la pila
+                context,
+                AppRoutes.initial,
+                (route) =>
+                    false, // Elimina todas las pantallas anteriores de la pila
+              );
+            },
+          ),
         ],
       ),
       body: deliveryProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : deliveryProvider.deliveries.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No hay entregas pendientes en ruta.',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: () => deliveryProvider.loadDeliveryOrders(),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: deliveryProvider.deliveries.length,
-                    itemBuilder: (context, index) {
-                      final order = deliveryProvider.deliveries[index];
-                      return _buildDeliveryCard(context, order, deliveryProvider);
-                    },
-                  ),
-                ),
+          ? const Center(
+              child: Text(
+                'No hay entregas pendientes en ruta.',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: () => deliveryProvider.loadDeliveryOrders(),
+              child: ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: deliveryProvider.deliveries.length,
+                itemBuilder: (context, index) {
+                  final order = deliveryProvider.deliveries[index];
+                  return _buildDeliveryCard(context, order, deliveryProvider);
+                },
+              ),
+            ),
     );
   }
 
   Widget _buildDeliveryCard(
-      BuildContext context, OrderEntity order, DeliveryProvider provider) {
+    BuildContext context,
+    OrderEntity order,
+    DeliveryProvider provider,
+  ) {
     final isReady = order.status == OrderStatus.ready;
     final isOut = order.status == OrderStatus.outForDelivery;
 
@@ -111,7 +139,8 @@ class _DeliveryOrdersScreenState extends State<DeliveryOrdersScreen> {
               children: [
                 if (isReady)
                   ElevatedButton.icon(
-                    onPressed: () => provider.markAsOrderOutForDelivery(order.id),
+                    onPressed: () =>
+                        provider.markAsOrderOutForDelivery(order.id),
                     icon: const Icon(Icons.delivery_dining),
                     label: const Text('Salir a Repartir'),
                     style: ElevatedButton.styleFrom(

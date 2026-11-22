@@ -18,11 +18,11 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     // Credenciales de cliente
-    _emailController = TextEditingController(text: "eribeckbermudez@gmail.com");
-    _passwordController = TextEditingController(text: "123456");
-    // Credenciales de admin
-    //_emailController = TextEditingController(text: "marustore.vzla@gmail.com");
+    //_emailController = TextEditingController(text: "eribeckbermudez@gmail.com");
     //_passwordController = TextEditingController(text: "123456");
+    // Credenciales de admin
+    _emailController = TextEditingController(text: "marustore.vzla@gmail.com");
+    _passwordController = TextEditingController(text: "123456");
   }
 
   @override

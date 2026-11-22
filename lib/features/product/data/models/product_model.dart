@@ -30,12 +30,13 @@ class ProductModel extends ProductEntity {
         (e) => e.name == (json['type'] ?? 'comprado'),
         orElse: () => ProductType.comprado,
       ),
-      purchasePrice: (json['purchasePrice'] ?? 0.0).toDouble(),
-      salePrice: (json['salePrice'] ?? 0.0).toDouble(),
-      stock: json['stock'] ?? 0,
+      purchasePrice: (json['purchasePrice'] as num?)?.toDouble() ?? 0.0,
+      salePrice: (json['salePrice'] as num?)?.toDouble() ?? 0.0,
+      stock: (json['stock'] as num?)?.toInt() ?? 0,
       minStock:
-          json['minStock'] ?? 5, // Valor por defecto sugerido para alertas
-      maxStock: json['maxStock'] ?? 50,
+          (json['minStock'] as num?)?.toInt() ??
+          5, // Valor por defecto sugerido para alertas
+      maxStock: (json['maxStock'] as num?)?.toInt() ?? 50,
       isActive: json['isActive'] ?? true,
       recipe:
           (json['recipe'] as List<dynamic>?)

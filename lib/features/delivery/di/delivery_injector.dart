@@ -11,13 +11,14 @@ import 'package:maru_food_system/features/order/di/order_injector.dart';
 DeliveryProvider createDeliveryProvider() {
   // 💡 Pides el caso de uso ya armado al módulo dueño (Order)
   final getDeliveryOrdersUseCase = createGetDeliveryOrdersUseCase();
-  final updateOrderOperationalStatusUseCase =
-      createUpdateOrderOperationalStatusUseCase();
+  final updateOrderOperationalStatusUseCase = createUpdateOrderOperationalStatusUseCase();
+  final updateOrderStatusUseCase = createUpdateOrderStatusUseCase();
 
   // Se lo pasas al adaptador de delivery
   final deliveryOrderAdapter = DeliveryOrderAdapterImpl(
     getDeliveryOrdersUseCase: getDeliveryOrdersUseCase,
     updateOrderOperationalStatusUseCase: updateOrderOperationalStatusUseCase,
+    updateOrderStatusUseCase: updateOrderStatusUseCase,
   );
 
   return DeliveryProvider(

@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart.';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/order_model.dart';
 import '../../domain/entities/order_status.enum.dart';
 import '../../../../app/errors/firebase_safe_call.extension.dart';
