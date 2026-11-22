@@ -18,13 +18,25 @@ class UpdateOrderStatusUseCase {
       throw Exception('No se encontró la orden con ID: $orderId.');
     }
 
-    final alreadyCompleted = currentOrder.status == OrderStatus.completed;
+    final isAlreadyTerminal =
+        currentOrder.status == OrderStatus.completed ||
+        currentOrder.status == OrderStatus.rejected;
+
+    if (isAlreadyTerminal && currentOrder.status != newStatus) {
+      throw Exception(
+        'No se puede modificar una orden que ya está en estado ${currentOrder.status.label}.',
+      );
+    }
+
+    if (currentOrder.status == newStatus) {
+      return;
+    }
 
     // 1. Actualizamos el estado de la orden en el repositorio
     await _orderRepository.updateOrderStatus(orderId, newStatus);
 
-    // 2. Si pasa a completado por primera vez, distribuimos ingresos en finanzas
-    if (newStatus == OrderStatus.completed && !alreadyCompleted) {
+    // 2. Si pasa a completado, distribuimos ingresos en finanzas
+    if (newStatus == OrderStatus.completed) {
       final updatedOrder = await _orderRepository.getOrderById(orderId);
 
       if (updatedOrder == null) {

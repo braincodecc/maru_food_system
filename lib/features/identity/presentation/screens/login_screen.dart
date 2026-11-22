@@ -37,10 +37,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     // Usamos watch para reconstruir la UI cuando cambie el estado (ej. isLoading)
     final identityProvider = context.watch<IdentityProvider>();
-    final emailController = TextEditingController(
-      text: "eribeckbermudez@gmail.com",
-    );
-    final passwordController = TextEditingController(text: "123456");
 
     return Scaffold(
       body: Padding(
@@ -57,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
 
                 TextField(
-                  controller: emailController,
+                  controller: _emailController,
                   decoration: const InputDecoration(
                     labelText: "Correo",
                     border: OutlineInputBorder(),
@@ -67,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
 
                 TextField(
-                  controller: passwordController,
+                  controller: _passwordController,
                   obscureText: true,
                   decoration: const InputDecoration(
                     labelText: "Contraseña",

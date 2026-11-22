@@ -441,6 +441,10 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
         break;
     }
 
+    final bool isTerminalStatus =
+        order.status == OrderStatus.completed ||
+        order.status == OrderStatus.rejected;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -451,18 +455,19 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
             runSpacing: 8,
             children: primaryActions,
           ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: () =>
-                _showEmergencyStatusDialog(context, order, provider),
-            icon: const Icon(Icons.tune, size: 16, color: Colors.grey),
-            label: const Text(
-              'Cambiar estado (Emergencia)',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+        if (!isTerminalStatus)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () =>
+                  _showEmergencyStatusDialog(context, order, provider),
+              icon: const Icon(Icons.tune, size: 16, color: Colors.grey),
+              label: const Text(
+                'Cambiar estado (Emergencia)',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
             ),
           ),
-        ),
       ],
     );
   }
