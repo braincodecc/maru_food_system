@@ -18,31 +18,6 @@ class OrderModel extends OrderEntity {
 
   /// Convierte un documento de Firestore a OrderModel
   factory OrderModel.fromMap(String id, Map<String, dynamic> json) {
-    // 1. Procesamos los items de forma segura
-    List<OrderItemModel> parsedItems = [];
-    final rawItems = json['items'];
-
-    if (rawItems is List) {
-      // Formato NUEVO: Es una lista de mapas (con snapshots)
-      parsedItems = rawItems
-          .map((item) => OrderItemModel.fromMap(item as Map<String, dynamic>))
-          .toList();
-    } else if (rawItems is Map) {
-      // Formato VIEJO: Era un Map<String, dynamic> (ej: {"prod_1": 2})
-      // Lo transformamos temporalmente para que no rompa la app al leer órdenes pasadas
-      rawItems.forEach((productId, quantity) {
-        parsedItems.add(
-          OrderItemModel(
-            productId: productId.toString(),
-            productName: 'Producto histórico', // Texto por defecto para órdenes viejas
-            unitPrice: 0.0,
-            unitCost: 0.0,
-            quantity: (quantity as num).toDouble(),
-          ),
-        );
-      });
-    }
-
     return OrderModel(
       id: id,
       clientId: json['clientId'] ?? '',
@@ -52,13 +27,13 @@ class OrderModel extends OrderEntity {
       clientPhone: json['clientPhone'] ?? '',
       isDelivery: json['isDelivery'] ?? false,
       createdAt: (json['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      items: parsedItems,
-          /*(json['items'] as List<dynamic>?)
+      items:
+          (json['items'] as List<dynamic>?)
               ?.map(
                 (item) => OrderItemModel.fromMap(item as Map<String, dynamic>),
               )
               .toList() ??
-          [],*/
+          [],
     );
   }
 

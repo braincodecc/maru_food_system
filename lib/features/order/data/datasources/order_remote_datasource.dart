@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:maru_food_system/features/ingredient/data/models/ingredient_model.dart';
+import 'package:maru_food_system/features/product/data/models/product_model.dart';
 import '../models/order_model.dart';
 import '../../domain/entities/order_status.enum.dart';
 import '../../../../app/errors/firebase_safe_call.extension.dart';
@@ -259,37 +261,44 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
               // ==========================================
               final orderRef = _firestore.collection('orders').doc(orderId);
               final orderSnap = await transaction.get(orderRef);
-              //transaction.update(orderRef, {'status': newStatus.name});
+              final orderData = orderSnap.data();
 
-              if (!orderSnap.exists) throw Exception('El pedido no existe.');
+              if (!orderSnap.exists && orderData != null) {
+                throw Exception('El pedido no existe.');
+              }
 
-              final orderData = orderSnap.data()!;
-              if (orderData['status'] == 'rejected') return;
+              final orderModel = OrderModel.fromMap(orderSnap.id, orderData!);
 
-              final Map<String, dynamic> items = orderData['items'] ?? {};
-              final Map<String, DocumentSnapshot> productSnapshots = {};
-              final Map<String, DocumentSnapshot> ingredientSnapshots = {};
+              if (orderModel.status == OrderStatus.rejected ||
+                  orderModel.status == OrderStatus.completed) {
+                return;
+              }
 
-              for (var productId in items.keys) {
-                final productRef = _firestore
-                    .collection('products')
-                    .doc(productId);
-                final productSnap = await transaction.get(productRef);
-                productSnapshots[productId] = productSnap;
+              final orderItems = orderModel.items;
+              final Map<String, ProductModel> productsById = {};
+              final Map<String, IngredientModel> ingredientsById = {};
 
-                if (productSnap.exists &&
-                    productSnap.data()?['type'] == 'fabricado') {
-                  final List<dynamic> recipe =
-                      productSnap.data()?['recipe'] ?? [];
-                  for (var rItem in recipe) {
-                    final ingId = rItem['ingredientId'];
-                    if (ingId != null &&
-                        !ingredientSnapshots.containsKey(ingId)) {
-                      final ingRef = _firestore
-                          .collection('ingredients')
-                          .doc(ingId);
-                      final ingSnap = await transaction.get(ingRef);
-                      ingredientSnapshots[ingId] = ingSnap;
+              for (final orderItem in orderItems) {
+                if (orderItem.productId.isNotEmpty || !productsById.containsKey(orderItem.productId)) {
+                  final productRef = _firestore.collection('products').doc(orderItem.productId);
+                  final productSnap = await transaction.get(productRef);
+                  final productData = productSnap.data();
+
+                  if (productSnap.exists && productData != null) {
+                    final product = ProductModel.fromMap(productSnap.id,productData);
+                    productsById[orderItem.productId] = product;
+
+                    if (product.type.name == 'fabricado') {
+                      for (final recipeItem in product.recipe) {
+                        if (recipeItem.ingredientId.isNotEmpty && !ingredientsById.containsKey(recipeItem.ingredientId)) {
+                          final ingredientRef = _firestore.collection('ingredients').doc(recipeItem.ingredientId);
+                          final ingredientSnap = await transaction.get(ingredientRef);
+                          final ingredientData = ingredientSnap.data();
+                          if (ingredientSnap.exists && ingredientData != null) {
+                            ingredientsById[recipeItem.ingredientId] = IngredientModel.fromMap(ingredientSnap.id,ingredientData);
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -298,38 +307,23 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
               // ==========================================
               // FASE 2: TODAS LAS ESCRITURAS (WRITES) DESPUÉS
               // ==========================================
-              for (var entry in items.entries) {
-                final productId = entry.key;
-                final qty = (entry.value as num).toInt();
-                final productSnap = productSnapshots[productId];
+              for (var orderItem in orderItems) {
+                if (orderItem.productId.isNotEmpty && productsById.containsKey(orderItem.productId)) {
+                  final product = productsById[orderItem.productId]!;
+                  final productRef = _firestore.collection('products').doc(product.id);
+                  final productRetQty = orderItem.quantity;
+                  transaction.update(productRef, {
+                    'stock': product.stock + productRetQty,
+                  });
 
-                if (productSnap != null && productSnap.exists) {
-                  final productRef = _firestore
-                      .collection('products')
-                      .doc(productId);
-                  final productData =
-                      productSnap.data() as Map<String, dynamic>;
-                  final currentStock = productData['stock'] ?? 0;
-                  transaction.update(productRef, {'stock': currentStock + qty});
-
-                  if (productData['type'] == 'fabricado') {
-                    final List<dynamic> recipe = productData['recipe'] ?? [];
-                    for (var rItem in recipe) {
-                      final ingId = rItem['ingredientId'];
-                      final double qtyPerUnit =
-                          (rItem['quantityRequired'] ?? 0.0).toDouble();
-                      final double totalReturn = qtyPerUnit * qty;
-
-                      final ingSnap = ingredientSnapshots[ingId];
-                      if (ingSnap != null && ingSnap.exists) {
-                        final ingRef = _firestore
-                            .collection('ingredients')
-                            .doc(ingId);
-                        final ingData = ingSnap.data() as Map<String, dynamic>;
-                        final currentIngStock = (ingData['stock'] ?? 0.0)
-                            .toDouble();
-                        transaction.update(ingRef, {
-                          'stock': currentIngStock + totalReturn,
+                  if (product.type.name == 'fabricado') {
+                    for (var recipeItem in product.recipe) {
+                      if (recipeItem.ingredientId.isNotEmpty && ingredientsById.containsKey(recipeItem.ingredientId)) {
+                        final ingredient = ingredientsById[recipeItem.ingredientId]!;
+                        final ingredientRef = _firestore.collection('ingredients').doc(recipeItem.ingredientId);
+                        final ingredientRetQty = recipeItem.quantityRequired * orderItem.quantity;
+                        transaction.update(ingredientRef, {
+                          'stock': ingredient.stock + ingredientRetQty,
                         });
                       }
                     }
@@ -338,6 +332,7 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
               }
 
               transaction.update(orderRef, {'status': newStatus.name});
+              
             } catch (innerError) {
               // 2. ¡Guardamos el detalle exacto en la variable exterior!
               capturedError = innerError;

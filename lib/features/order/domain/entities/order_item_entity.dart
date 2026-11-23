@@ -3,7 +3,7 @@ class OrderItemEntity {
   final String productName;    // Nombre congelado (Snapshot)
   final double unitPrice;      // Precio de venta congelado (Snapshot)
   final double unitCost;       // Costo de producción congelado (Snapshot) 💡 NUEVO
-  final double quantity;       
+  final int quantity;       
 
   const OrderItemEntity({
     required this.productId,

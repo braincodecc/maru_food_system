@@ -7,18 +7,4 @@ class RecipeItemEntity {
     required this.ingredientId,
     required this.quantityRequired,
   });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'ingredientId': ingredientId,
-      'quantityRequired': quantityRequired,
-    };
-  }
-
-  factory RecipeItemEntity.fromMap(Map<String, dynamic> map) {
-    return RecipeItemEntity(
-      ingredientId: map['ingredientId'] ?? '',
-      quantityRequired: (map['quantityRequired'] ?? 0.0).toDouble(),
-    );
-  }
 }

@@ -498,7 +498,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<OrderStatus>(
-                    value: selectedStatus,
+                    initialValue: selectedStatus,
                     decoration: const InputDecoration(
                       labelText: 'Nuevo estado',
                       border: OutlineInputBorder(),
@@ -526,36 +526,41 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
                   onPressed: selectedStatus == order.status
                       ? null
                       : () {
-                          Navigator.pop(dialogContext);
-                          final requiresFinanceConfirm =
+                          final targetStatus = selectedStatus;
+                          final requiredConfirm =
                               selectedStatus == OrderStatus.completed ||
                               selectedStatus == OrderStatus.rejected;
 
-                          if (requiresFinanceConfirm) {
-                            _confirmAction(
-                              context,
-                              'Confirmar: ${selectedStatus.label}',
-                              'Cambiar a "${selectedStatus.label}" puede afectar inventario o distribuir ingresos financieros. ¿Deseas continuar?',
-                              () => _applyStatusChange(
-                                context,
+                          // 1. Cerramos el diálogo de selección de emergencia
+                          Navigator.pop(dialogContext);
+
+                          // 2. Esperamos al siguiente frame para abrir confirmación o aplicar directo
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            if (!mounted) return;
+
+                            Future<void> executeChange() async {
+                              await _applyStatusChange(
+                                this.context,
                                 provider,
                                 order,
-                                selectedStatus,
+                                targetStatus,
                                 successMessage:
-                                    'Estado actualizado a "${selectedStatus.label}".',
-                              ),
-                              Colors.deepOrange,
-                            );
-                          } else {
-                            _applyStatusChange(
-                              context,
-                              provider,
-                              order,
-                              selectedStatus,
-                              successMessage:
-                                  'Estado actualizado a "${selectedStatus.label}".',
-                            );
-                          }
+                                    'Estado actualizado a "${targetStatus.label}".',
+                              );
+                            }
+
+                            if (requiredConfirm) {
+                              _confirmAction(
+                                this.context,
+                                'Confirmar: ${targetStatus.label}',
+                                'Cambiar a "${targetStatus.label}" puede afectar inventario o distribuir ingresos financieros. ¿Deseas continuar?',
+                                executeChange,
+                                Colors.deepOrange,
+                              );
+                            } else {
+                              executeChange();
+                            }
+                          });
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepOrange,
@@ -621,13 +626,18 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
     required String successMessage,
     Color successColor = Colors.green,
   }) async {
-    final messenger = ScaffoldMessenger.maybeOf(context);
+    // Si el State ya no está montado antes de iniciar, no hacemos nada en UI
+    if (!mounted) return;
     final success = await provider.changeOrderStatus(order.id, targetStatus);
 
-    if (!mounted || messenger == null) return;
+    if (!mounted) return;
+    final messenger = ScaffoldMessenger.maybeOf(this.context);
 
     if (success) {
       await provider.loadOrders();
+
+      // Verificamos tras el segundo await por si la pantalla se cerró mientras recargaba
+      if (!mounted || messenger == null) return;
       messenger.showSnackBar(
         SnackBar(
           content: Text(successMessage),
@@ -636,6 +646,7 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
         ),
       );
     } else {
+      if (!mounted || messenger == null) return;
       messenger.showSnackBar(
         SnackBar(
           content: Text(

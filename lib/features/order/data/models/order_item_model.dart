@@ -14,9 +14,9 @@ class OrderItemModel extends OrderItemEntity {
     return OrderItemModel(
       productId: json['productId'] ?? '',
       productName: json['productName'] ?? '',
-      unitPrice: (json['unitPrice'] ?? 0.0).toDouble(),
-      unitCost: (json['unitCost'] ?? 0.0).toDouble(),
-      quantity: (json['quantity'] ?? 0).toDouble(),
+      unitPrice: (json['unitPrice'] as num?)?.toDouble() ?? 0.0,
+      unitCost: (json['unitCost'] as num?)?.toDouble() ?? 0.0,
+      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
     );
   }
 

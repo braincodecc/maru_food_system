@@ -25,6 +25,15 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
   final Map<String, int> _cart = {};
 
   @override
+  void initState() {
+    super.initState();
+    // Se ejecuta automáticamente al abrir la pantalla para garantizar datos frescos
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ClientProductProvider>().loadActiveProducts();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final clientProvider = context.watch<ClientProductProvider>();
     final identityProvider = context.watch<IdentityProvider>();
@@ -296,10 +305,10 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
       orderItems.add(
         OrderItemEntity(
           productId: product.id,
-          productName: product.name,      // Snapshot del nombre
-          unitPrice: product.salePrice,   // Snapshot del precio de venta
-          unitCost: product.purchasePrice,// Snapshot del costo de producción
-          quantity: quantity.toDouble(),  // Cantidad comprada
+          productName: product.name, // Snapshot del nombre
+          unitPrice: product.salePrice, // Snapshot del precio de venta
+          unitCost: product.purchasePrice, // Snapshot del costo de producción
+          quantity: quantity, // Cantidad comprada
         ),
       );
     });
@@ -335,7 +344,8 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            clientOrderProvider.errorMessage ?? 'No hay suficiente stock disponible.',
+            clientOrderProvider.errorMessage ??
+                'No hay suficiente stock disponible.',
           ),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 4),

@@ -1,3 +1,4 @@
+import 'package:maru_food_system/features/product/data/models/recipe_item_model.dart';
 import 'package:maru_food_system/features/product/domain/entities/recipe_item_entity.dart';
 
 import '../../domain/entities/product_entity.dart';
@@ -42,7 +43,7 @@ class ProductModel extends ProductEntity {
           (json['recipe'] as List<dynamic>?)
               ?.map(
                 (item) =>
-                    RecipeItemEntity.fromMap(item as Map<String, dynamic>),
+                    RecipeItemModel.fromMap(item as Map<String, dynamic>),
               )
               .toList() ??
           [], // Inicializamos la receta como lista vacía si no existe
@@ -62,7 +63,7 @@ class ProductModel extends ProductEntity {
       'minStock': minStock,
       'maxStock': maxStock,
       'isActive': isActive,
-      'recipe': recipe.map((item) => item.toMap()).toList(),
+      'recipe': recipe.map((item) => RecipeItemModel.fromEntity(item).toMap()).toList(),
     };
   }
 
