@@ -2,13 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../identity/identity.dart'; // Para acceder a IdentityProvider y permitir cerrar sesión
-
-class AdminHomeScreen extends StatelessWidget {
+import 'admin_products_screen.dart';
+// import 'admin_ingredients_screen.dart';
+class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
+
+  @override
+  State<AdminHomeScreen> createState() => _AdminHomeScreenState();
+}
+
+class _AdminHomeScreenState extends State<AdminHomeScreen> {
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     final identityProvider = context.watch<IdentityProvider>();
+
+    final List<Widget> sections = [
+      const _WarehouseSection(),
+      const Center(child: Text('Sección Órdenes (siguiente paso)')),
+      const Center(child: Text('Sección Finanzas (siguiente paso)')),
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -27,7 +41,31 @@ class AdminHomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: Center(
+      body: IndexedStack(index: _currentIndex, children: sections),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        selectedItemColor: Colors.deepOrange,
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        onTap: (index) {
+          setState(() => _currentIndex = index);
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.inventory_2_rounded),
+            label: 'Almacén',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long_rounded),
+            label: 'Órdenes',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet_rounded),
+            label: 'Finanzas',
+          ),
+        ],
+      ),
+      /*Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
@@ -157,6 +195,50 @@ class AdminHomeScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),*/
+    );
+  }
+}
+
+class _WarehouseSection extends StatelessWidget {
+  const _WarehouseSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: const [
+          Material(
+            color: Colors.white,
+            elevation: 1,
+            child: TabBar(
+              labelColor: Colors.deepOrange,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Colors.deepOrange,
+              tabs: [
+                Tab(
+                  icon: Icon(Icons.fastfood_rounded),
+                  text: 'Productos',
+                ),
+                Tab(
+                  icon: Icon(Icons.kitchen_rounded),
+                  text: 'Ingredientes',
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: [
+                // Pestaña 1: Productos
+                AdminProductsBody(),
+                // Pestaña 2: Ingredientes
+                Center(child: Text('Vista de Ingredientes')),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
