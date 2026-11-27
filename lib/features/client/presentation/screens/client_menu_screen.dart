@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:maru_food_system/app/routes/app_routes.dart';
 import 'package:provider/provider.dart';
-import 'checkout_screen.dart';
+import 'client_checkout_screen.dart';
 
 // Importamos el proveedor de ordenes
 import '../providers/client_product_provider.dart';
@@ -331,7 +331,7 @@ class _ClientMenuScreenState extends State<ClientMenuScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => CheckoutScreen(
+          builder: (_) => ClientCheckoutScreen(
             orderId: orderId,
             items: orderItems,
             totalAmount: totalAmount,

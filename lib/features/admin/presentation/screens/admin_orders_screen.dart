@@ -6,27 +6,13 @@ import 'package:provider/provider.dart';
 import '../providers/admin_order_provider.dart';
 import 'package:maru_food_system/features/identity/presentation/providers/identity_provider.dart';
 
-class AdminOrdersScreen extends StatefulWidget {
+class AdminOrdersScreen extends StatelessWidget {
   const AdminOrdersScreen({super.key});
-
-  @override
-  State<AdminOrdersScreen> createState() => _AdminOrdersScreenState();
-}
-
-class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Cargamos los pedidos apenas entra el administrador
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AdminOrderProvider>().loadOrders();
-    });
-  }
-
+  
   @override
   Widget build(BuildContext context) {
-    final orderProvider = context.watch<AdminOrderProvider>();
-    final identityProvider = context.watch<IdentityProvider>();
+    final orderProvider = context.read<AdminOrderProvider>();
+    final identityProvider = context.read<IdentityProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -49,38 +35,66 @@ class _AdminOrdersScreenState extends State<AdminOrdersScreen> {
           ),
         ],
       ),
-      body: orderProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : orderProvider.errorMessage != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Text(
-                  orderProvider.errorMessage!,
-                  style: const TextStyle(color: Colors.red, fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            )
-          : orderProvider.orders.isEmpty
-          ? const Center(
+      body: AdminOrdersBody(),
+    );
+  }
+}
+
+class AdminOrdersBody extends StatefulWidget {
+  const AdminOrdersBody({super.key});
+
+  @override
+  State<AdminOrdersBody> createState() => _AdminOrdersBodyState();
+}
+
+class _AdminOrdersBodyState extends State<AdminOrdersBody> {
+  @override
+  void initState() {
+    super.initState();
+    // Cargamos los pedidos apenas entra el administrador
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AdminOrderProvider>().loadOrders();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final orderProvider = context.watch<AdminOrderProvider>();
+    Widget content;
+
+    orderProvider.isLoading
+        ? content = const Center(child: CircularProgressIndicator())
+        : orderProvider.errorMessage != null
+        ? content = Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
               child: Text(
-                'No hay pedidos registrados en el sistema.',
-                style: TextStyle(fontSize: 16, color: Colors.grey),
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: () => orderProvider.loadOrders(),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: orderProvider.orders.length,
-                itemBuilder: (context, index) {
-                  final order = orderProvider.orders[index];
-                  return _buildOrderCard(context, order, orderProvider);
-                },
+                orderProvider.errorMessage!,
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+                textAlign: TextAlign.center,
               ),
             ),
-    );
+          )
+        : orderProvider.orders.isEmpty
+        ? content = const Center(
+            child: Text(
+              'No hay pedidos registrados en el sistema.',
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+          )
+        : content = RefreshIndicator(
+            onRefresh: () => orderProvider.loadOrders(),
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: orderProvider.orders.length,
+              itemBuilder: (context, index) {
+                final order = orderProvider.orders[index];
+                return _buildOrderCard(context, order, orderProvider);
+              },
+            ),
+          );
+
+    return content;
   }
 
   Widget _buildOrderCard(

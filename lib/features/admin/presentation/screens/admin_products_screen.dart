@@ -8,7 +8,6 @@ import 'admin_product_form_screen.dart';
 
 class AdminProductsScreen extends StatelessWidget {
   const AdminProductsScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
     final identityProvider = context.watch<IdentityProvider>();

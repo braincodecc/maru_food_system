@@ -1,16 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/admin_finance_provider.dart';
+import 'package:maru_food_system/app/routes/app_routes.dart';
 import 'package:maru_food_system/features/finance/domain/entities/financial_account_entity.dart';
+import '../../../identity/identity.dart';
+import '../providers/admin_finance_provider.dart';
 
-class AdminFinanceScreen extends StatefulWidget {
+class AdminFinanceScreen extends StatelessWidget {
   const AdminFinanceScreen({super.key});
 
   @override
-  State<AdminFinanceScreen> createState() => _AdminFinanceScreenState();
+  Widget build(BuildContext context) {
+    final identityProvider = context.watch<IdentityProvider>();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Finanzas & Caja'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Cerrar Sesión',
+            onPressed: () async {
+              await identityProvider.logout();
+              // AuthWrapper redirigirá automáticamente al Login
+              // Limpiamos todo el historial de navegación y regresamos al AuthWrapper raíz ('/')
+              Navigator.pushNamedAndRemoveUntil(
+                // Elimina todas las pantallas superiores de la pila
+                context,
+                AppRoutes.initial,
+                (route) =>
+                    false, // Elimina todas las pantallas anteriores de la pila
+              );
+            },
+          ),
+        ],
+      ),
+      body: AdminFinanceBody(),
+    );
+  }
 }
 
-class _AdminFinanceScreenState extends State<AdminFinanceScreen> {
+class AdminFinanceBody extends StatefulWidget {
+  const AdminFinanceBody({super.key});
+
+  @override
+  State<AdminFinanceBody> createState() => _AdminFinanceBodyState();
+}
+
+class _AdminFinanceBodyState extends State<AdminFinanceBody> {
   @override
   void initState() {
     super.initState();
@@ -23,65 +59,60 @@ class _AdminFinanceScreenState extends State<AdminFinanceScreen> {
   @override
   Widget build(BuildContext context) {
     final financeProvider = context.watch<AdminFinanceProvider>();
+    Widget content;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Finanzas & Caja - Maru Food'),
-        backgroundColor: Colors.deepOrange,
-        foregroundColor: Colors.white,
-      ),
-      body: financeProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : financeProvider.errorMessage != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  'Error: ${financeProvider.errorMessage}',
-                  style: const TextStyle(color: Colors.red, fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: () => financeProvider.loadAccounts(),
-              child: ListView(
-                padding: const EdgeInsets.all(16.0),
-                children: [
-                  const Text(
-                    'Reflejo Contable de Cuentas',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Control estricto para separar capital de trabajo y ganancias.',
-                    style: TextStyle(fontSize: 13, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Tarjetas de Cuentas (Reposición vs Sueldos)
-                  ...financeProvider.accounts.map((account) {
-                    return _buildAccountCard(context, account);
-                  }),
-
-                  if (financeProvider.accounts.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40),
-                      child: Center(
-                        child: Text(
-                          'No hay cuentas contables registradas en el sistema.',
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ),
-                    ),
-                ],
+    financeProvider.isLoading
+        ? content = const Center(child: CircularProgressIndicator())
+        : financeProvider.errorMessage != null
+        ? content = Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                'Error: ${financeProvider.errorMessage}',
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+                textAlign: TextAlign.center,
               ),
             ),
-    );
+          )
+        : content = RefreshIndicator(
+            onRefresh: () => financeProvider.loadAccounts(),
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                const Text(
+                  'Reflejo Contable de Cuentas',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Control estricto para separar capital de trabajo y ganancias.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+
+                // Tarjetas de Cuentas (Reposición vs Sueldos)
+                ...financeProvider.accounts.map((account) {
+                  return _buildAccountCard(context, account);
+                }),
+
+                if (financeProvider.accounts.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40),
+                    child: Center(
+                      child: Text(
+                        'No hay cuentas contables registradas en el sistema.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+    return content;
   }
 
   /// Widget para renderizar cada tarjeta de cuenta con diseño diferenciado

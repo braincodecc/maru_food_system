@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:maru_food_system/features/order/domain/entities/order_entity.dart';
+import 'package:maru_food_system/features/order/domain/entities/order_item_entity.dart';
 import 'package:maru_food_system/features/order/domain/entities/order_status.enum.dart';
 import '../../domain/ports/admin_order_port.dart';
 
@@ -47,6 +48,61 @@ class AdminOrderProvider extends ChangeNotifier {
     try {
       await _adminOrderPort.changeStatus(orderId, newStatus);
       await loadOrders();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String?> createOrderReservation({
+    required String clientId,
+    required bool isDelivery,
+    required double totalAmount,
+    required List<OrderItemEntity> items,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final orderId = await _adminOrderPort.reserveOrder(
+        clientId: clientId,
+        isDelivery: isDelivery,
+        totalAmount: totalAmount,
+        items: items,
+      );
+      await loadOrders();
+      return orderId;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> confirmOrderPurchase({
+    required String orderId,
+    required String paymentReference,
+    required String clientPhone,
+    required bool isDelivery,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _adminOrderPort.confirmPurchase(
+        orderId: orderId,
+        paymentReference: paymentReference,
+        clientPhone: clientPhone,
+        isDelivery: isDelivery,
+      );
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');

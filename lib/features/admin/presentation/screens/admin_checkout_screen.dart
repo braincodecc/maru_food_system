@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // Importamos el proveedor de ordenes
-import '../providers/client_order_provider.dart';
+import '../providers/admin_order_provider.dart';
 
 // Importamos del modulo de ordenes sus entidades y enumerables
 import 'package:maru_food_system/features/order/domain/entities/order_item_entity.dart';
 
-class CheckoutScreen extends StatefulWidget {
+class AdminCheckoutScreen extends StatefulWidget {
   final String orderId;
   final List<OrderItemEntity> items;
   final double totalAmount;
   //final List<ProductEntity> availableProducts;
 
-  const CheckoutScreen({
+  const AdminCheckoutScreen({
     super.key,
     required this.orderId,
     required this.items,
@@ -22,10 +22,10 @@ class CheckoutScreen extends StatefulWidget {
   });
 
   @override
-  State<CheckoutScreen> createState() => _CheckoutScreenState();
+  State<AdminCheckoutScreen> createState() => _AdminCheckoutScreenState();
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
+class _AdminCheckoutScreenState extends State<AdminCheckoutScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   final _referenceController = TextEditingController();
@@ -41,7 +41,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final orderProvider = context.watch<ClientOrderProvider>();
+    final orderProvider = context.watch<AdminOrderProvider>();
 
     return Scaffold(
       appBar: AppBar(

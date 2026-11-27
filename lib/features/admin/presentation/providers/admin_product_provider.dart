@@ -7,7 +7,7 @@ class AdminProductProvider extends ChangeNotifier {
   final AdminProductPort _adminProductPort;
 
   AdminProductProvider({required AdminProductPort adminProductPort})
-      : _adminProductPort = adminProductPort;
+    : _adminProductPort = adminProductPort;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -25,8 +25,9 @@ class AdminProductProvider extends ChangeNotifier {
 
     try {
       _products = await _adminProductPort.getProducts();
+      syncStockCache();
     } catch (e) {
-      _errorMessage = 'Error al cargar los productos: ${e.toString()}';
+      _errorMessage = 'Error al cargar las órdenes: ${e.toString()}';
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -64,6 +65,31 @@ class AdminProductProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    }
+  }
+
+  // Metodos para el menú de clientes
+  final Map<String, int> _localStockCache = {};
+
+  List<ProductEntity> get activeProducts =>
+      _products.where((product) => product.isActive).toList();
+
+  void syncStockCache() {
+    _localStockCache.clear();
+    for (final product in activeProducts) {
+      _localStockCache[product.id] = product.stock;
+    }
+  }
+
+  int getCachedStock(String productId) {
+    return _localStockCache[productId] ?? 0;
+  }
+
+  void updateLocalCacheAfterAddToCart(String productId, int quantityChange) {
+    if (_localStockCache.containsKey(productId)) {
+      _localStockCache[productId] =
+          _localStockCache[productId]! + quantityChange;
+      notifyListeners();
     }
   }
 }

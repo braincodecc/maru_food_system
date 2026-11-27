@@ -71,6 +71,8 @@ AdminIngredientProvider createAdminIngredientProvider() {
 AdminOrderProvider createAdminOrderProvider() {
   final adminOrderAdapter = AdminOrderAdapterImpl(
     getAdminOrdersUseCase: createGetAdminOrdersUseCase(),
+        createOrderReservationUsecase: createCreateOrderReservationUsecase(),
+    confirmOrderCheckoutUseCase: createConfirmOrderCheckoutUseCase(),
     updateOrderStatusUseCase: createUpdateOrderStatusUseCase(),
   );
 
